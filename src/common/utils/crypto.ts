@@ -21,14 +21,3 @@ export async function verifyPassword(
 ): Promise<boolean> {
   return await verifyValue(password, hash);
 }
-
-export async function hashRefreshToken(token: string): Promise<string> {
-  return await hashValue(token);
-}
-
-export async function verifyRefreshToken(
-  token: string,
-  hash: string,
-): Promise<boolean> {
-  return await verifyValue(token, hash);
-}
