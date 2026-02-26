@@ -11,10 +11,16 @@ import {
   verifyRefreshToken,
 } from '@common/utils/jwt';
 import { User } from '@db/browser';
+import { Prisma } from '@db/client';
 import { LoginDto } from '@modules/auth/dto/login.dto';
 import { RegisterDto } from '@modules/auth/dto/register.dto';
 import { PrismaService } from '@modules/prisma/prisma.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 type Tokens = {
   accessToken: string;
@@ -24,6 +30,7 @@ type Tokens = {
 @Injectable()
 export class AuthService {
   private readonly refreshExpiresInMs: number;
+  private readonly logger = new Logger(AuthService.name);
   constructor(private prisma: PrismaService) {
     const seconds = Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS);
     if (!seconds || isNaN(seconds)) {
@@ -36,14 +43,26 @@ export class AuthService {
     const { password, ...userData } = registerDto;
     const passwordHash = await hashPassword(password);
 
-    const user = await this.prisma.user.create({
-      data: {
-        ...userData,
-        passwordHash,
-      },
-    });
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          ...userData,
+          passwordHash,
+        },
+      });
 
-    return await this.loginUser(user);
+      this.logger.log({ msg: 'User registered', userId: user.id });
+
+      return await this.loginUser(user);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Email is already in use');
+      }
+      throw error;
+    }
   }
 
   async validateUser(loginDto: LoginDto): Promise<User> {
