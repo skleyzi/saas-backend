@@ -3,5 +3,5 @@ export const getRefreshTokenCookieOptions = () => ({
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict' as const,
   path: '/',
-  maxAge: Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS) * 1000,
+  maxAge: Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS),
 });

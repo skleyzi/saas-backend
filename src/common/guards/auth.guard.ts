@@ -1,5 +1,5 @@
 import { IS_PUBLIC_KEY } from '@common/decorators/public.decorator';
-import { AccessTokenPayload } from '@common/types/jwt.types';
+import { AuthRequest } from '@common/types/auth-request.types';
 import { verifyAccessToken } from '@common/utils/jwt';
 import {
   CanActivate,
@@ -8,11 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
 
-interface AuthRequest extends Request {
-  user?: AccessTokenPayload;
-}
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -33,14 +29,14 @@ export class AuthGuard implements CanActivate {
 
     try {
       const payload = verifyAccessToken(token);
-      request['user'] = payload;
+      request.user = payload;
     } catch {
       throw new UnauthorizedException('Access token invalid or expired');
     }
     return true;
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
+  private extractTokenFromHeader(request: AuthRequest): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }

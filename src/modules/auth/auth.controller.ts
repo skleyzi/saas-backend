@@ -11,7 +11,7 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 @Controller('auth')
 export class AuthController {
@@ -21,12 +21,16 @@ export class AuthController {
   @Post('register')
   async registerUser(
     @Body() dto: RegisterDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: FastifyReply,
   ) {
     const { accessToken, refreshToken } =
       await this.authService.registerUser(dto);
 
-    res.cookie('refresh_token', refreshToken, getRefreshTokenCookieOptions());
+    res.setCookie(
+      'refresh_token',
+      refreshToken,
+      getRefreshTokenCookieOptions(),
+    );
 
     return { accessToken };
   }
@@ -35,13 +39,17 @@ export class AuthController {
   @Post('login')
   async loginUser(
     @Body() dto: LoginDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: FastifyReply,
   ) {
     const user = await this.authService.validateUser(dto);
     const { accessToken, refreshToken } =
       await this.authService.loginUser(user);
 
-    res.cookie('refresh_token', refreshToken, getRefreshTokenCookieOptions());
+    res.setCookie(
+      'refresh_token',
+      refreshToken,
+      getRefreshTokenCookieOptions(),
+    );
 
     return { accessToken };
   }
@@ -49,8 +57,8 @@ export class AuthController {
   @Public()
   @Post('refresh')
   async refreshSession(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) res: FastifyReply,
   ) {
     const oldRefreshToken = req.cookies['refresh_token'];
     if (!oldRefreshToken)
@@ -59,7 +67,11 @@ export class AuthController {
     const { accessToken, refreshToken } =
       await this.authService.refreshSession(oldRefreshToken);
 
-    res.cookie('refresh_token', refreshToken, getRefreshTokenCookieOptions());
+    res.setCookie(
+      'refresh_token',
+      refreshToken,
+      getRefreshTokenCookieOptions(),
+    );
 
     return { accessToken };
   }
