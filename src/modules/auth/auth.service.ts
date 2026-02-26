@@ -51,13 +51,10 @@ export class AuthService {
       where: { email: loginDto.email },
     });
 
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    const isPasswordValid =
+      user && (await verifyPassword(loginDto.password, user.passwordHash));
 
-    const isPasswordValid = await verifyPassword(
-      loginDto.password,
-      user.passwordHash,
-    );
-    if (!isPasswordValid)
+    if (!user || !isPasswordValid)
       throw new UnauthorizedException('Invalid credentials');
 
     return user;
@@ -128,7 +125,7 @@ export class AuthService {
     });
 
     if (count === 0) {
-      throw new UnauthorizedException('Token already used');
+      throw new UnauthorizedException('Refresh token already used');
     }
 
     return newTokens;
