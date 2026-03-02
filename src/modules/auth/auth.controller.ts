@@ -1,5 +1,4 @@
 import { Public } from '@common/decorators/public.decorator';
-import { getRefreshTokenCookieOptions } from '@common/utils/auth.constants';
 import { AuthService } from '@modules/auth/auth.service';
 import { LoginDto } from '@modules/auth/dto/login.dto';
 import { RegisterDto } from '@modules/auth/dto/register.dto';
@@ -17,6 +16,16 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  getRefreshTokenCookieOptions() {
+    return {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      path: '/',
+      maxAge: Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS),
+    };
+  }
+
   @Public()
   @Post('register')
   async registerUser(
@@ -29,7 +38,7 @@ export class AuthController {
     res.setCookie(
       'refresh_token',
       refreshToken,
-      getRefreshTokenCookieOptions(),
+      this.getRefreshTokenCookieOptions(),
     );
 
     return { accessToken };
@@ -48,7 +57,7 @@ export class AuthController {
     res.setCookie(
       'refresh_token',
       refreshToken,
-      getRefreshTokenCookieOptions(),
+      this.getRefreshTokenCookieOptions(),
     );
 
     return { accessToken };
@@ -70,7 +79,7 @@ export class AuthController {
     res.setCookie(
       'refresh_token',
       refreshToken,
-      getRefreshTokenCookieOptions(),
+      this.getRefreshTokenCookieOptions(),
     );
 
     return { accessToken };
