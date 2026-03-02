@@ -3,6 +3,7 @@ import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
 import { AuthGuard } from '@common/guards/auth.guard';
 import fastifyCookie from '@fastify/cookie';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -40,7 +41,9 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalGuards(new AuthGuard(app.get(Reflector)));
+  app.useGlobalGuards(
+    new AuthGuard(app.get(Reflector), app.get(ConfigService)),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }

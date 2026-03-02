@@ -21,6 +21,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 type Tokens = {
   accessToken: string;
@@ -31,12 +32,12 @@ type Tokens = {
 export class AuthService {
   private readonly refreshExpiresInMs: number;
   private readonly logger = new Logger(AuthService.name);
-  constructor(private prisma: PrismaService) {
-    const seconds = Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS);
-    if (!seconds || isNaN(seconds)) {
-      throw new Error('JWT_REFRESH_EXPIRES_IN_SECONDS is not set or invalid');
-    }
-    this.refreshExpiresInMs = seconds * 1000;
+  constructor(
+    private configService: ConfigService,
+    private prisma: PrismaService,
+  ) {
+    this.refreshExpiresInMs =
+      Number(configService.getOrThrow('JWT_REFRESH_EXPIRES_IN_SECONDS')) * 1000;
   }
 
   async registerUser(registerDto: RegisterDto): Promise<Tokens> {
@@ -152,7 +153,7 @@ export class AuthService {
 
   private validateRefreshToken(refreshToken: string): RefreshTokenPayload {
     try {
-      return verifyRefreshToken(refreshToken);
+      return verifyRefreshToken(refreshToken, this.configService);
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -166,8 +167,8 @@ export class AuthService {
     };
 
     return {
-      accessToken: signAccessToken(payload),
-      refreshToken: signRefreshToken(payload),
+      accessToken: signAccessToken(payload, this.configService),
+      refreshToken: signRefreshToken(payload, this.configService),
     };
   }
 }

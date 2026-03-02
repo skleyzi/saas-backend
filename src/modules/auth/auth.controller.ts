@@ -10,19 +10,25 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private configService: ConfigService,
+  ) {}
 
   getRefreshTokenCookieOptions() {
     return {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: this.configService.get('NODE_ENV') === 'production',
       sameSite: 'strict' as const,
       path: '/',
-      maxAge: Number(process.env.JWT_REFRESH_EXPIRES_IN_SECONDS),
+      maxAge: Number(
+        this.configService.getOrThrow('JWT_REFRESH_EXPIRES_IN_SECONDS'),
+      ),
     };
   }
 

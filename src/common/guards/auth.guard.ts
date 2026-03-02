@@ -7,11 +7,15 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private configService: ConfigService,
+  ) {}
   canActivate(context: ExecutionContext): boolean {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
@@ -28,7 +32,7 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = verifyAccessToken(token);
+      const payload = verifyAccessToken(token, this.configService);
       request.user = payload;
       request.log = request.log.child({ userId: payload.sub });
     } catch {
