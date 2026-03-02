@@ -100,6 +100,9 @@ model Subscription {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan Plan @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([planId])
 }
 
 enum SubscriptionStatus {
