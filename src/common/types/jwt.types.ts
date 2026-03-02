@@ -1,12 +1,12 @@
 import { Role } from '@db/enums';
 
 export interface AccessTokenPayload {
-  sub: number;
+  sub: string;
   role: Role;
-  sid: number;
+  sid: string;
 }
 
 export interface RefreshTokenPayload {
-  sub: number;
-  sid: number;
+  sub: string;
+  sid: string;
 }

@@ -158,7 +158,7 @@ export class AuthService {
     }
   }
 
-  private generateTokens(user: User, sessionId: number): Tokens {
+  private generateTokens(user: User, sessionId: string): Tokens {
     const payload = {
       sub: user.id,
       role: user.role,
