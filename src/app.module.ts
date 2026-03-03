@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import Joi from 'joi';
 import { BillingModule } from './modules/billing/billing.module';
 import { StripeModule } from './modules/stripe/stripe.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
     PrismaModule,
     StripeModule,
     BillingModule,
+    WebhookModule,
   ],
 })
 export class AppModule {}
