@@ -38,7 +38,11 @@ export class StripeService {
     });
   }
 
-  async retrieveSubscriptions(subscriptionId: string) {
+  async retrieveSubscription(subscriptionId: string) {
     return await this.stripe.subscriptions.retrieve(subscriptionId);
+  }
+
+  constructWebhookEvent(payload: Buffer, signature: string, secret: string) {
+    return this.stripe.webhooks.constructEvent(payload, signature, secret);
   }
 }
