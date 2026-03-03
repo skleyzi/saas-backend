@@ -4,7 +4,9 @@ import { UsersModule } from '@modules/users/users.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import Joi from 'joi';
+import { BillingModule } from './modules/billing/billing.module';
 import { StripeModule } from './modules/stripe/stripe.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -24,6 +26,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
     AuthModule,
     PrismaModule,
     StripeModule,
+    BillingModule,
   ],
 })
 export class AppModule {}
