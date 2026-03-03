@@ -106,11 +106,12 @@ model Subscription {
 }
 
 enum SubscriptionStatus {
-  TRIALING
-  ACTIVE
-  CANCELED
   INCOMPLETE
   INCOMPLETE_EXPIRED
+  TRIALING
+  ACTIVE
   PAST_DUE
+  CANCELED
   UNPAID
+  PAUSED
 }
