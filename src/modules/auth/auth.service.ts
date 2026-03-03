@@ -33,8 +33,8 @@ export class AuthService {
   private readonly refreshExpiresInMs: number;
   private readonly logger = new Logger(AuthService.name);
   constructor(
-    private configService: ConfigService,
-    private prisma: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly prisma: PrismaService,
   ) {
     this.refreshExpiresInMs =
       Number(configService.getOrThrow('JWT_REFRESH_EXPIRES_IN_SECONDS')) * 1000;

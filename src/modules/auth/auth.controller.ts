@@ -17,7 +17,7 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   getRefreshTokenCookieOptions() {
