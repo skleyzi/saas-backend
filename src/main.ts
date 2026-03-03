@@ -17,7 +17,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     fastifyAdapter,
-    { bufferLogs: true },
+    { bufferLogs: true, rawBody: true },
   );
 
   const pinoInstance = fastifyAdapter.getInstance().log;
