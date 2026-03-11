@@ -13,44 +13,78 @@ export class WebhookService {
   ) {}
 
   async handleStripeEvent(event: Stripe.Event) {
+    const existing = await this.prisma.webhookEvent.findUnique({
+      where: { stripeEventId: event.id },
+    });
+
+    if (existing) {
+      this.logger.log({
+        msg: 'Duplicate event, ignored',
+        stripeEventId: event.id,
+      });
+      return { skipped: true };
+    }
+
+    await this.prisma.webhookEvent.create({
+      data: {
+        stripeEventId: event.id,
+        type: event.type,
+      },
+    });
+
     this.logger.log({
       msg: 'Processing event',
       type: event.type,
       stripeEventId: event.id,
     });
 
-    switch (event.type) {
-      case 'price.updated':
-      case 'price.created':
-        await this.upsertPrice(event.data.object as Stripe.Price);
-        break;
-      case 'price.deleted':
-        await this.handlePriceDeleted(event.data.object as Stripe.Price);
-        break;
-      case 'product.updated':
-        await this.handleProductUpdate(event.data.object as Stripe.Product);
-        break;
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-        await this.upsertSubscription(event.data.object as Stripe.Subscription);
-        break;
-      case 'customer.subscription.deleted':
-        await this.handleSubscriptionDeleted(
-          event.data.object as Stripe.Subscription,
-        );
-        break;
-      case 'checkout.session.completed':
-        await this.handleCheckoutCompleted(
-          event.data.object as Stripe.Checkout.Session,
-        );
-        break;
-      case 'invoice.paid':
-      case 'invoice.payment_failed': {
-        await this.handleInvoiceEvent(event.data.object as Stripe.Invoice);
-        break;
+    try {
+      switch (event.type) {
+        case 'price.updated':
+        case 'price.created':
+          await this.upsertPrice(event.data.object as Stripe.Price);
+          break;
+        case 'price.deleted':
+          await this.handlePriceDeleted(event.data.object as Stripe.Price);
+          break;
+        case 'product.updated':
+          await this.handleProductUpdate(event.data.object as Stripe.Product);
+          break;
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+          await this.upsertSubscription(
+            event.data.object as Stripe.Subscription,
+          );
+          break;
+        case 'customer.subscription.deleted':
+          await this.handleSubscriptionDeleted(
+            event.data.object as Stripe.Subscription,
+          );
+          break;
+        case 'checkout.session.completed':
+          await this.handleCheckoutCompleted(
+            event.data.object as Stripe.Checkout.Session,
+          );
+          break;
+        case 'invoice.paid':
+        case 'invoice.payment_failed': {
+          await this.handleInvoiceEvent(event.data.object as Stripe.Invoice);
+          break;
+        }
+        default:
+          break;
       }
-      default:
-        break;
+
+      await this.prisma.webhookEvent.update({
+        where: { stripeEventId: event.id },
+        data: { isSuccessful: true },
+      });
+    } catch (error) {
+      await this.prisma.webhookEvent.update({
+        where: { stripeEventId: event.id },
+        data: { isSuccessful: false },
+      });
+      throw error;
     }
   }
 
