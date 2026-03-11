@@ -24,6 +24,12 @@ export class WebhookService {
       case 'price.created':
         await this.upsertPrice(event.data.object as Stripe.Price);
         break;
+      case 'price.deleted':
+        await this.handlePriceDeleted(event.data.object as Stripe.Price);
+        break;
+      case 'product.updated':
+        await this.handleProductUpdate(event.data.object as Stripe.Product);
+        break;
       default:
         break;
     }
@@ -87,6 +93,36 @@ export class WebhookService {
         priceInCents: price.unit_amount ?? 0,
         stripeProductId: product.id,
         stripePriceId: price.id,
+      },
+    });
+  }
+
+  private async handlePriceDeleted(price: Stripe.Price) {
+    this.logger.log({
+      msg: 'Marking Plan as inactive',
+      stripePriceId: price.id,
+    });
+
+    await this.prisma.plan.updateMany({
+      where: { stripePriceId: price.id },
+      data: { isActive: false },
+    });
+  }
+
+  private async handleProductUpdate(product: Stripe.Product) {
+    this.logger.log({
+      msg: 'Updating all plans for product',
+      productId: product.id,
+    });
+
+    await this.prisma.plan.updateMany({
+      where: { stripeProductId: product.id },
+      data: {
+        name: product.name,
+        isActive: product.active,
+        maxResources: product.metadata?.maxResources
+          ? Number(product.metadata.maxResources)
+          : undefined,
       },
     });
   }
