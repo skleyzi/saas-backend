@@ -1,4 +1,99 @@
-import { Injectable } from '@nestjs/common';
+import { SubscriptionStatus } from '@db/enums';
+import { PrismaService } from '@modules/prisma/prisma.service';
+import { StripeService } from '@modules/stripe/stripe.service';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 @Injectable()
-export class BillingService {}
+export class BillingService {
+  constructor(
+    private readonly stripeService: StripeService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  async createCheckoutSession(userId: string, planId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { subscriptions: true },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const plan = await this.prisma.plan.findUnique({
+      where: { id: planId, isActive: true },
+    });
+
+    if (!plan) {
+      throw new NotFoundException('Plan not found or inactive');
+    }
+
+    const existingActive = user.subscriptions.find(
+      (s) =>
+        s.status === SubscriptionStatus.ACTIVE ||
+        s.status === SubscriptionStatus.TRIALING,
+    );
+
+    if (existingActive) {
+      throw new BadRequestException('User already has active subscription');
+    }
+
+    const customerId = await this.upsertCustomer(user);
+
+    const session = await this.stripeService.createCheckoutSession(
+      customerId,
+      plan.stripePriceId,
+      user.id,
+    );
+
+    return { url: session.url };
+  }
+
+  async getCurrentSubscription(userId: string) {
+    const subscription = await this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        status: {
+          in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING],
+        },
+      },
+      include: { plan: true },
+    });
+
+    if (!subscription)
+      throw new NotFoundException('No active subscription found');
+
+    return subscription;
+  }
+
+  async listPlans() {
+    return await this.prisma.plan.findMany({
+      where: { isActive: true },
+      orderBy: { priceInCents: 'asc' },
+    });
+  }
+
+  private async upsertCustomer(user: {
+    id: string;
+    email: string;
+    name: string;
+    stripeCustomerId: string | null;
+  }) {
+    if (user.stripeCustomerId) return user.stripeCustomerId;
+
+    const customer = await this.stripeService.createCustomer(
+      user.email,
+      user.name,
+      user.id,
+    );
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { stripeCustomerId: customer.id },
+    });
+
+    return customer.id;
+  }
+}
