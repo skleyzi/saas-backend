@@ -39,6 +39,11 @@ export class WebhookService {
           event.data.object as Stripe.Subscription,
         );
         break;
+      case 'checkout.session.completed':
+        await this.handleCheckoutCompleted(
+          event.data.object as Stripe.Checkout.Session,
+        );
+        break;
       default:
         break;
     }
@@ -199,6 +204,19 @@ export class WebhookService {
       where: { stripeSubscriptionId: subscription.id },
       data: { status: 'CANCELED' },
     });
+  }
+
+  private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+    if (!session.subscription) return;
+
+    const subscriptionId =
+      typeof session.subscription === 'string'
+        ? session.subscription
+        : session.subscription.id;
+
+    const stripeSub =
+      await this.stripeService.retrieveSubscription(subscriptionId);
+    await this.upsertSubscription(stripeSub);
   }
 
   private isSupportedPrice(price: Stripe.Price): {
