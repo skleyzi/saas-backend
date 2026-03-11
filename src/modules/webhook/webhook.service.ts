@@ -44,6 +44,11 @@ export class WebhookService {
           event.data.object as Stripe.Checkout.Session,
         );
         break;
+      case 'invoice.paid':
+      case 'invoice.payment_failed': {
+        await this.handleInvoiceEvent(event.data.object as Stripe.Invoice);
+        break;
+      }
       default:
         break;
     }
@@ -217,6 +222,55 @@ export class WebhookService {
     const stripeSub =
       await this.stripeService.retrieveSubscription(subscriptionId);
     await this.upsertSubscription(stripeSub);
+  }
+
+  private async handleInvoiceEvent(invoice: Stripe.Invoice) {
+    const line = invoice.lines.data[0];
+    if (!line) return;
+
+    const subscriptionId =
+      (typeof line.subscription === 'string'
+        ? line.subscription
+        : line.subscription?.id) ??
+      line.parent?.invoice_item_details?.subscription ??
+      line.metadata?.subscription_id;
+
+    if (!subscriptionId) {
+      this.logger.log({
+        msg: 'Invoice ignored: no subscription id found',
+        invoiceId: invoice.id,
+        reason: invoice.billing_reason,
+      });
+      return;
+    }
+
+    const newStatus = invoice.status === 'paid' ? 'ACTIVE' : 'PAST_DUE';
+
+    try {
+      await this.prisma.subscription.update({
+        where: { stripeSubscriptionId: subscriptionId },
+        data: {
+          status: newStatus,
+          currentPeriodStart: new Date(invoice.period_start * 1000),
+          currentPeriodEnd: new Date(invoice.period_end * 1000),
+        },
+      });
+
+      this.logger.log({
+        msg: 'Updated Subscription Status',
+        subscriptionId,
+        newStatus,
+        invoideId: invoice.id,
+      });
+    } catch (e) {
+      const error = e as Error;
+      const errorMessage = error.message;
+
+      this.logger.error({
+        msg: 'Error updating subscription status',
+        error: errorMessage,
+      });
+    }
   }
 
   private isSupportedPrice(price: Stripe.Price): {
