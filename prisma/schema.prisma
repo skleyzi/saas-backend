@@ -64,14 +64,16 @@ model Resource {
 }
 
 model Plan {
-  id            String          @id @default(uuid())
-  name          String          @unique
-  priceInCents  Int
-  currency      String          @default("usd")
-  interval      BillingInterval
-  stripePriceId String          @unique
-  maxResources  Int             @default(3)
-  isActive      Boolean         @default(true)
+  id              String          @id @default(uuid())
+  name            String
+  priceInCents    Int
+  currency        String          @default("usd")
+  interval        BillingInterval
+  intervalCount   Int             @default(1)
+  stripePriceId   String          @unique
+  stripeProductId String
+  maxResources    Int             @default(3)
+  isActive        Boolean         @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
