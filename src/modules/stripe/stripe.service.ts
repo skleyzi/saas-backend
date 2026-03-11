@@ -38,6 +38,10 @@ export class StripeService {
     });
   }
 
+  async retrieveProduct(productId: string) {
+    return await this.stripe.products.retrieve(productId);
+  }
+
   async retrieveSubscription(subscriptionId: string) {
     return await this.stripe.subscriptions.retrieve(subscriptionId);
   }
