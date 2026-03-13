@@ -260,15 +260,37 @@ export class WebhookService {
       return;
     }
 
-    const newStatus = invoice.status === 'paid' ? 'ACTIVE' : 'PAST_DUE';
+    let newStatus: SubscriptionStatus | undefined;
+    if (invoice.status === 'paid') newStatus = SubscriptionStatus.ACTIVE;
+    if (
+      invoice.status === 'open' &&
+      invoice.billing_reason === 'subscription_cycle'
+    ) {
+      newStatus = SubscriptionStatus.PAST_DUE;
+    }
+
+    const isStandardCycle =
+      invoice.billing_reason === 'subscription_cycle' ||
+      invoice.billing_reason === 'subscription_create';
+
+    if (!newStatus && isStandardCycle) {
+      this.logger.log({
+        msg: 'Invoice ignored: no status found',
+        invoiceId: invoice.id,
+        reason: invoice.billing_reason,
+      });
+      return;
+    }
 
     try {
       await this.prisma.subscription.update({
         where: { stripeSubscriptionId: subscriptionId },
         data: {
           status: newStatus,
-          currentPeriodStart: new Date(invoice.period_start * 1000),
-          currentPeriodEnd: new Date(invoice.period_end * 1000),
+          ...(isStandardCycle && {
+            currentPeriodStart: new Date(invoice.period_start * 1000),
+            currentPeriodEnd: new Date(invoice.period_end * 1000),
+          }),
         },
       });
 
