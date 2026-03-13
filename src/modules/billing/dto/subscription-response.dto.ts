@@ -7,6 +7,9 @@ export class SubscriptionResponseDto {
   status!: SubscriptionStatus;
 
   @Expose()
+  currentPeriodStart!: Date;
+
+  @Expose()
   currentPeriodEnd!: Date;
 
   @Expose()
