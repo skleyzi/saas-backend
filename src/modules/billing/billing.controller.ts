@@ -62,4 +62,9 @@ export class BillingController {
   ) {
     return await this.billingService.createCheckoutSession(userId, planId);
   }
+
+  @Post('portal')
+  async getPortalUrl(@CurrentUser('sub') userId: string) {
+    return await this.billingService.getPortalUrl(userId);
+  }
 }

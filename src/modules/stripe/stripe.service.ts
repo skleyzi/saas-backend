@@ -65,4 +65,11 @@ export class StripeService {
   async cancelImmediately(subscriptionId: string) {
     return await this.stripe.subscriptions.cancel(subscriptionId);
   }
+
+  async createPortalSession(customerId: string, returnUrl: string) {
+    return await this.stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: returnUrl,
+    });
+  }
 }

@@ -6,12 +6,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class BillingService {
   constructor(
     private readonly stripeService: StripeService,
     private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
   ) {}
 
   async createCheckoutSession(userId: string, planId: string) {
@@ -119,6 +121,25 @@ export class BillingService {
       where: { stripeSubscriptionId: subscriptionId },
       data: { cancelAtPeriodEnd: false },
     });
+  }
+
+  async getPortalUrl(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { stripeCustomerId: true },
+    });
+
+    if (!user?.stripeCustomerId)
+      throw new NotFoundException(
+        'Customer record not found. Please subscribe first.',
+      );
+
+    const { url } = await this.stripeService.createPortalSession(
+      user.stripeCustomerId,
+      this.configService.getOrThrow<string>('BILLING_SETTINGS_URL'),
+    );
+
+    return { url };
   }
 
   private async upsertCustomer(user: {
