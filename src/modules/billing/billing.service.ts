@@ -33,12 +33,14 @@ export class BillingService {
     const existingActive = user.subscriptions.find(
       (s) =>
         s.status === SubscriptionStatus.ACTIVE ||
-        s.status === SubscriptionStatus.TRIALING,
+        s.status === SubscriptionStatus.TRIALING ||
+        s.status === SubscriptionStatus.PAST_DUE,
     );
 
-    if (existingActive) {
-      throw new BadRequestException('User already has active subscription');
-    }
+    if (existingActive)
+      throw new BadRequestException(
+        'User already has active or past due subscription',
+      );
 
     const customerId = await this.upsertCustomer(user);
 
