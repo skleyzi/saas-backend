@@ -75,6 +75,50 @@ export class BillingService {
     });
   }
 
+  async cancelSubscription(userId: string, subscriptionId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: subscriptionId, userId },
+    });
+
+    if (!subscription) throw new NotFoundException('Subscription not found');
+
+    if (subscription.status === 'CANCELED')
+      throw new BadRequestException('Subscription already canceled');
+
+    if (subscription.cancelAtPeriodEnd)
+      throw new BadRequestException(
+        'Subscription already marked for cancellation',
+      );
+
+    await this.stripeService.cancelSubscriptionAtPeriodEnd(subscriptionId);
+
+    return await this.prisma.subscription.update({
+      where: { stripeSubscriptionId: subscriptionId },
+      data: { cancelAtPeriodEnd: true },
+    });
+  }
+
+  async resumeSubscription(userId: string, subscriptionId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: subscriptionId, userId },
+    });
+
+    if (!subscription) throw new NotFoundException('Subscription not found');
+
+    if (!subscription.cancelAtPeriodEnd) {
+      throw new BadRequestException(
+        'Subscription is not scheduled for cancellation',
+      );
+    }
+
+    await this.stripeService.resumeSubscription(subscriptionId);
+
+    return await this.prisma.subscription.update({
+      where: { stripeSubscriptionId: subscriptionId },
+      data: { cancelAtPeriodEnd: false },
+    });
+  }
+
   private async upsertCustomer(user: {
     id: string;
     email: string;

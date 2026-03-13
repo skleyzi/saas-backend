@@ -23,6 +23,38 @@ export class BillingController {
     return new SubscriptionResponseDto(subscription);
   }
 
+  @Post('subscription/:id/cancel')
+  async cancelSubscription(
+    @Param('id') subId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    const subscription = await this.billingService.cancelSubscription(
+      userId,
+      subId,
+    );
+
+    return {
+      message: 'Subscription will cancel at period end',
+      subscription: new SubscriptionResponseDto(subscription),
+    };
+  }
+
+  @Post('subscription/:id/resume')
+  async resumeSubscription(
+    @Param('id') subId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    const subscription = await this.billingService.resumeSubscription(
+      userId,
+      subId,
+    );
+
+    return {
+      message: 'Resumed subscription',
+      subscription: new SubscriptionResponseDto(subscription),
+    };
+  }
+
   @Post('checkout/:planId')
   async createCheckoutSession(
     @CurrentUser('sub') userId: string,

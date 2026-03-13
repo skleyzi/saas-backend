@@ -49,4 +49,16 @@ export class StripeService {
   constructWebhookEvent(payload: Buffer, signature: string, secret: string) {
     return this.stripe.webhooks.constructEvent(payload, signature, secret);
   }
+
+  async cancelSubscriptionAtPeriodEnd(subscriptionId: string) {
+    return await this.stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: true,
+    });
+  }
+
+  async resumeSubscription(subscriptionId: string) {
+    return await this.stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: false,
+    });
+  }
 }
