@@ -105,6 +105,7 @@ model Subscription {
 
   @@index([userId])
   @@index([planId])
+  @@index([currentPeriodEnd])
 }
 
 enum SubscriptionStatus {
