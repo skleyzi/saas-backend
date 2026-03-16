@@ -277,74 +277,26 @@ export class WebhookService {
   }
 
   private async handleInvoiceEvent(invoice: Stripe.Invoice) {
-    const line = invoice.lines.data[0];
-    if (!line) return;
-
     const subscriptionId =
-      (typeof line.subscription === 'string'
-        ? line.subscription
-        : line.subscription?.id) ??
-      line.parent?.invoice_item_details?.subscription ??
-      line.metadata?.subscription_id;
+      invoice.parent?.type === 'subscription_details'
+        ? typeof invoice.parent.subscription_details?.subscription === 'string'
+          ? invoice.parent.subscription_details.subscription
+          : invoice.parent.subscription_details?.subscription.id
+        : null;
 
-    if (!subscriptionId) {
-      this.logger.log({
-        msg: 'Invoice ignored: no subscription id found',
-        invoiceId: invoice.id,
-        reason: invoice.billing_reason,
-      });
-      return;
-    }
+    if (!subscriptionId) return;
 
-    let newStatus: SubscriptionStatus | undefined;
-    if (invoice.status === 'paid') newStatus = SubscriptionStatus.ACTIVE;
-    if (
-      invoice.status === 'open' &&
-      invoice.billing_reason === 'subscription_cycle'
-    ) {
-      newStatus = SubscriptionStatus.PAST_DUE;
-    }
+    this.logger.log({
+      msg: 'Processing invoice event',
+      invoiceId: invoice.id,
+      subscriptionId,
+      type: invoice.billing_reason,
+    });
 
-    const isStandardCycle =
-      invoice.billing_reason === 'subscription_cycle' ||
-      invoice.billing_reason === 'subscription_create';
+    const subscription =
+      await this.stripeService.retrieveSubscription(subscriptionId);
 
-    if (!newStatus && isStandardCycle) {
-      this.logger.log({
-        msg: 'Invoice ignored: no status found',
-        invoiceId: invoice.id,
-        reason: invoice.billing_reason,
-      });
-      return;
-    }
-
-    try {
-      await this.prisma.subscription.update({
-        where: { stripeSubscriptionId: subscriptionId },
-        data: {
-          status: newStatus,
-          ...(isStandardCycle && {
-            currentPeriodStart: new Date(invoice.period_start * 1000),
-            currentPeriodEnd: new Date(invoice.period_end * 1000),
-          }),
-        },
-      });
-
-      this.logger.log({
-        msg: 'Updated Subscription Status',
-        subscriptionId,
-        newStatus,
-        invoideId: invoice.id,
-      });
-    } catch (e) {
-      const error = e as Error;
-      const errorMessage = error.message;
-
-      this.logger.error({
-        msg: 'Error updating subscription status',
-        error: errorMessage,
-      });
-    }
+    await this.upsertSubscription(subscription);
   }
 
   private isSupportedPrice(price: Stripe.Price): {
