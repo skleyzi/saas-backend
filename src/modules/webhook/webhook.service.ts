@@ -67,6 +67,11 @@ export class WebhookService {
           break;
         }
         default:
+          this.logger.debug({
+            msg: 'Unhandled Stripe event type',
+            stripeEventId: event.id,
+            type: event.type,
+          });
           break;
       }
 
@@ -75,6 +80,13 @@ export class WebhookService {
         data: { isSuccessful: true },
       });
     } catch (error) {
+      this.logger.error({
+        msg: 'Error processing event',
+        stripeEventId: event.id,
+        type: event.type,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       await this.prisma.webhookEvent.update({
         where: { stripeEventId: event.id },
         data: { isSuccessful: false },
@@ -231,7 +243,14 @@ export class WebhookService {
       where: { stripePriceId: priceId },
     });
 
-    if (!plan) return;
+    if (!plan) {
+      this.logger.error({
+        msg: 'Plan not found for subscription',
+        priceId,
+        subscriptionId: subscription.id,
+      });
+      return;
+    }
 
     this.logger.log({
       msg: 'Upserting subscription',
@@ -260,6 +279,10 @@ export class WebhookService {
   }
 
   private async handleSubscriptionDeleted(stripeSubscriptionId: string) {
+    this.logger.log({
+      msg: 'Subscription marked as canceled',
+      stripeSubscriptionId,
+    });
     await this.prisma.subscription.updateMany({
       where: { stripeSubscriptionId },
       data: { status: SubscriptionStatus.CANCELED },
