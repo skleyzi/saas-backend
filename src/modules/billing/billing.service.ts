@@ -111,9 +111,9 @@ export class BillingService {
       subscription.stripeSubscriptionId,
     );
 
-    return await this.prisma.subscription.update({
+    return await this.prisma.subscription.findUniqueOrThrow({
       where: { id: subscriptionId },
-      data: { cancelAtPeriodEnd: true },
+      include: { plan: true },
     });
   }
 
@@ -134,9 +134,9 @@ export class BillingService {
       subscription.stripeSubscriptionId,
     );
 
-    return await this.prisma.subscription.update({
+    return await this.prisma.subscription.findUniqueOrThrow({
       where: { id: subscriptionId },
-      data: { cancelAtPeriodEnd: false },
+      include: { plan: true },
     });
   }
 
