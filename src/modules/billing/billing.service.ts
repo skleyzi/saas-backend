@@ -94,7 +94,7 @@ export class BillingService {
 
   async cancelSubscription(userId: string, subscriptionId: string) {
     const subscription = await this.prisma.subscription.findUnique({
-      where: { stripeSubscriptionId: subscriptionId, userId },
+      where: { id: subscriptionId, userId },
     });
 
     if (!subscription) throw new NotFoundException('Subscription not found');
@@ -107,17 +107,19 @@ export class BillingService {
         'Subscription already marked for cancellation',
       );
 
-    await this.stripeService.cancelSubscriptionAtPeriodEnd(subscriptionId);
+    await this.stripeService.cancelSubscriptionAtPeriodEnd(
+      subscription.stripeSubscriptionId,
+    );
 
     return await this.prisma.subscription.update({
-      where: { stripeSubscriptionId: subscriptionId },
+      where: { id: subscriptionId },
       data: { cancelAtPeriodEnd: true },
     });
   }
 
   async resumeSubscription(userId: string, subscriptionId: string) {
     const subscription = await this.prisma.subscription.findUnique({
-      where: { stripeSubscriptionId: subscriptionId, userId },
+      where: { id: subscriptionId, userId },
     });
 
     if (!subscription) throw new NotFoundException('Subscription not found');
@@ -128,10 +130,12 @@ export class BillingService {
       );
     }
 
-    await this.stripeService.resumeSubscription(subscriptionId);
+    await this.stripeService.resumeSubscription(
+      subscription.stripeSubscriptionId,
+    );
 
     return await this.prisma.subscription.update({
-      where: { stripeSubscriptionId: subscriptionId },
+      where: { id: subscriptionId },
       data: { cancelAtPeriodEnd: false },
     });
   }
