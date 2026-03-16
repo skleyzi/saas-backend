@@ -2,7 +2,7 @@ import { BillingInterval, SubscriptionStatus } from '@db/enums';
 import { BillingMapper } from '@modules/billing/billing.mapper';
 import { PrismaService } from '@modules/prisma/prisma.service';
 import { StripeService } from '@modules/stripe/stripe.service';
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -214,9 +214,7 @@ export class WebhookService {
         customerId,
         subscriptionId: subscription.id,
       });
-      throw new NotFoundException(
-        `User with customer ID ${customerId} not found`,
-      );
+      throw new Error(`User not found for subscription ${subscription.id}`);
     }
 
     const item = subscription.items.data[0];
