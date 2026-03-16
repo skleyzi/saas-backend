@@ -4,6 +4,9 @@ import { Expose, Type } from 'class-transformer';
 
 export class SubscriptionResponseDto {
   @Expose()
+  id!: string;
+
+  @Expose()
   status!: SubscriptionStatus;
 
   @Expose()
