@@ -72,4 +72,12 @@ export class StripeService {
       return_url: returnUrl,
     });
   }
+
+  async hasActiveSubscription(customerId: string) {
+    const result = await this.stripe.subscriptions.list({
+      customer: customerId,
+      limit: 1,
+    });
+    return result.data.length > 0;
+  }
 }

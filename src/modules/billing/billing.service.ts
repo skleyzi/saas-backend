@@ -4,12 +4,14 @@ import { StripeService } from '@modules/stripe/stripe.service';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class BillingService {
+  private readonly logger = new Logger(BillingService.name);
   constructor(
     private readonly stripeService: StripeService,
     private readonly prisma: PrismaService,
@@ -23,6 +25,17 @@ export class BillingService {
     });
 
     if (!user) throw new NotFoundException('User not found');
+
+    if (
+      user.stripeCustomerId &&
+      (await this.stripeService.hasActiveSubscription(user.stripeCustomerId))
+    ) {
+      this.logger.warn({
+        msg: 'Found ghost sub in Stripe, blocking checkout',
+        userId,
+      });
+      throw new BadRequestException('You already have an active subscription.');
+    }
 
     const plan = await this.prisma.plan.findUnique({
       where: { id: planId, isActive: true },
