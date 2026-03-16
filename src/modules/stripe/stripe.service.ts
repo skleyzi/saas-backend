@@ -13,11 +13,14 @@ export class StripeService {
   }
 
   async createCustomer(email: string, name: string, userId: string) {
-    return await this.stripe.customers.create({
-      email,
-      name,
-      metadata: { userId },
-    });
+    return await this.stripe.customers.create(
+      {
+        email,
+        name,
+        metadata: { userId },
+      },
+      { idempotencyKey: `create-customer-${userId}` },
+    );
   }
 
   async createCheckoutSession(
@@ -25,17 +28,26 @@ export class StripeService {
     priceId: string,
     userId: string,
   ) {
-    return await this.stripe.checkout.sessions.create({
-      mode: 'subscription',
-      customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
-      payment_method_types: ['card'],
-      success_url:
-        this.configService.getOrThrow('SUCCESS_URL') +
-        '?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: this.configService.getOrThrow('CANCEL_URL'),
-      metadata: { userId },
-    });
+    const timeGrain = new Date().toISOString().slice(0, 16);
+    const idempotencyKey = `checkout-${userId}-${priceId}-${timeGrain}`;
+
+    return await this.stripe.checkout.sessions.create(
+      {
+        mode: 'subscription',
+        customer: customerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        payment_method_types: ['card'],
+        success_url:
+          this.configService.getOrThrow('SUCCESS_URL') +
+          '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url: this.configService.getOrThrow('CANCEL_URL'),
+        subscription_data: {
+          metadata: { userId },
+        },
+        metadata: { userId },
+      },
+      { idempotencyKey },
+    );
   }
 
   async retrieveProduct(productId: string) {
