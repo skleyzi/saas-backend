@@ -46,6 +46,10 @@ export class StripeService {
     return await this.stripe.subscriptions.retrieve(subscriptionId);
   }
 
+  async retrievePrice(priceId: string) {
+    return await this.stripe.prices.retrieve(priceId);
+  }
+
   constructWebhookEvent(payload: Buffer, signature: string, secret: string) {
     return this.stripe.webhooks.constructEvent(payload, signature, secret);
   }

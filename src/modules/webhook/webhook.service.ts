@@ -39,28 +39,35 @@ export class WebhookService {
     });
 
     try {
+      const object = event.data.object as { id: string };
       switch (event.type) {
         case 'price.updated':
-        case 'price.created':
-          await this.upsertPrice(event.data.object as Stripe.Price);
+        case 'price.created': {
+          const price = await this.stripeService.retrievePrice(object.id);
+          await this.upsertPrice(price);
           break;
-        case 'price.deleted':
-          await this.handlePriceDeleted(event.data.object as Stripe.Price);
+        }
+        case 'price.deleted': {
+          await this.handlePriceDeleted(object.id);
           break;
-        case 'product.updated':
-          await this.handleProductUpdate(event.data.object as Stripe.Product);
+        }
+        case 'product.updated': {
+          const product = await this.stripeService.retrieveProduct(object.id);
+          await this.handleProductUpdate(product);
           break;
+        }
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
-          await this.upsertSubscription(
-            event.data.object as Stripe.Subscription,
-          );
+        case 'customer.subscription.paused':
+        case 'customer.subscription.resumed': {
+          const sub = await this.stripeService.retrieveSubscription(object.id);
+          await this.upsertSubscription(sub);
           break;
-        case 'customer.subscription.deleted':
-          await this.handleSubscriptionDeleted(
-            event.data.object as Stripe.Subscription,
-          );
+        }
+        case 'customer.subscription.deleted': {
+          await this.handleSubscriptionDeleted(object.id);
           break;
+        }
         case 'invoice.paid':
         case 'invoice.payment_failed': {
           await this.handleInvoiceEvent(event.data.object as Stripe.Invoice);
@@ -145,14 +152,14 @@ export class WebhookService {
     });
   }
 
-  private async handlePriceDeleted(price: Stripe.Price) {
+  private async handlePriceDeleted(stripePriceId: string) {
     this.logger.log({
       msg: 'Marking Plan as inactive',
-      stripePriceId: price.id,
+      stripePriceId,
     });
 
     await this.prisma.plan.updateMany({
-      where: { stripePriceId: price.id },
+      where: { stripePriceId },
       data: { isActive: false },
     });
   }
@@ -233,10 +240,10 @@ export class WebhookService {
     });
   }
 
-  private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  private async handleSubscriptionDeleted(stripeSubscriptionId: string) {
     await this.prisma.subscription.update({
-      where: { stripeSubscriptionId: subscription.id },
-      data: { status: 'CANCELED' },
+      where: { stripeSubscriptionId },
+      data: { status: SubscriptionStatus.CANCELED },
     });
   }
 
