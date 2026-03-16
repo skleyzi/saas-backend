@@ -1,4 +1,5 @@
 import { BillingInterval, SubscriptionStatus } from '@db/enums';
+import { BillingMapper } from '@modules/billing/billing.mapper';
 import { PrismaService } from '@modules/prisma/prisma.service';
 import { StripeService } from '@modules/stripe/stripe.service';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
@@ -235,7 +236,7 @@ export class WebhookService {
     });
 
     const subscriptionData = {
-      status: this.STATUS_MAP[subscription.status],
+      status: BillingMapper.toInternalStatus(subscription.status),
       currentPeriodStart: new Date(item.current_period_start * 1000),
       currentPeriodEnd: new Date(item.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -317,16 +318,5 @@ export class WebhookService {
   private readonly INTERVAL_MAP: Record<string, BillingInterval> = {
     month: BillingInterval.MONTH,
     year: BillingInterval.YEAR,
-  };
-
-  private STATUS_MAP: Record<Stripe.Subscription.Status, SubscriptionStatus> = {
-    trialing: SubscriptionStatus.TRIALING,
-    active: SubscriptionStatus.ACTIVE,
-    canceled: SubscriptionStatus.CANCELED,
-    incomplete: SubscriptionStatus.INCOMPLETE,
-    incomplete_expired: SubscriptionStatus.INCOMPLETE_EXPIRED,
-    past_due: SubscriptionStatus.PAST_DUE,
-    unpaid: SubscriptionStatus.UNPAID,
-    paused: SubscriptionStatus.PAUSED,
   };
 }
