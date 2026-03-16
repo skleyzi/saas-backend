@@ -98,10 +98,8 @@ export class BillingService {
     });
 
     if (!subscription) throw new NotFoundException('Subscription not found');
-
-    if (subscription.status === 'CANCELED')
+    if (subscription.status === SubscriptionStatus.CANCELED)
       throw new BadRequestException('Subscription already canceled');
-
     if (subscription.cancelAtPeriodEnd)
       throw new BadRequestException(
         'Subscription already marked for cancellation',
