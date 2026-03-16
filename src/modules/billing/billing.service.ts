@@ -130,6 +130,16 @@ export class BillingService {
       );
     }
 
+    const resumableStatuses: Partial<SubscriptionStatus>[] = [
+      SubscriptionStatus.ACTIVE,
+      SubscriptionStatus.TRIALING,
+    ];
+    if (!resumableStatuses.includes(subscription.status)) {
+      throw new BadRequestException(
+        `Cannot resume a subscription with status: ${subscription.status}`,
+      );
+    }
+
     await this.stripeService.resumeSubscription(
       subscription.stripeSubscriptionId,
     );
