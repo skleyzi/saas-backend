@@ -199,19 +199,24 @@ export class WebhookService {
   }
 
   private async upsertSubscription(subscription: Stripe.Subscription) {
-    const customerId =
-      typeof subscription.customer === 'string'
-        ? subscription.customer
-        : subscription.customer.id;
+    const userId = subscription.metadata?.userId;
 
-    const user = await this.prisma.user.findUnique({
-      where: { stripeCustomerId: customerId },
-    });
+    let user;
+    if (userId) {
+      user = await this.prisma.user.findUnique({ where: { id: userId } });
+    } else {
+      const customerId =
+        typeof subscription.customer === 'string'
+          ? subscription.customer
+          : subscription.customer.id;
+      user = await this.prisma.user.findUnique({
+        where: { stripeCustomerId: customerId },
+      });
+    }
 
     if (!user) {
       this.logger.warn({
         msg: 'User not found',
-        customerId,
         subscriptionId: subscription.id,
       });
       throw new Error(`User not found for subscription ${subscription.id}`);
