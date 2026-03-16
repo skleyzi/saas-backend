@@ -73,7 +73,11 @@ export class BillingService {
       where: {
         userId,
         status: {
-          in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING],
+          in: [
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIALING,
+            SubscriptionStatus.PAST_DUE,
+          ],
         },
       },
       include: { plan: true },
