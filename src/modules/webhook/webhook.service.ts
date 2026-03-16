@@ -73,6 +73,12 @@ export class WebhookService {
           await this.handleInvoiceEvent(event.data.object as Stripe.Invoice);
           break;
         }
+        case 'checkout.session.expired': {
+          await this.handleSessionExpired(
+            event.data.object as Stripe.Checkout.Session,
+          );
+          break;
+        }
         default:
           break;
       }
@@ -88,6 +94,29 @@ export class WebhookService {
       });
       throw error;
     }
+  }
+
+  private async handleSessionExpired(session: Stripe.Checkout.Session) {
+    const subscriptionId =
+      typeof session.subscription === 'string'
+        ? session.subscription
+        : session.subscription?.id;
+
+    if (!subscriptionId) return;
+
+    this.logger.log({
+      msg: 'Checkout session expired, updating status',
+      subscriptionId,
+    });
+
+    await this.prisma.subscription.update({
+      where: {
+        stripeSubscriptionId: subscriptionId,
+      },
+      data: {
+        status: SubscriptionStatus.INCOMPLETE_EXPIRED,
+      },
+    });
   }
 
   private async upsertPrice(price: Stripe.Price) {
