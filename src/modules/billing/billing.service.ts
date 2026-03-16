@@ -65,6 +65,13 @@ export class BillingService {
       user.id,
     );
 
+    this.logger.log({
+      msg: 'Checkout session created',
+      userId,
+      planId,
+      sessionId: session.id,
+    });
+
     return { url: session.url };
   }
 
