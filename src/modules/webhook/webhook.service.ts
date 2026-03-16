@@ -13,30 +13,16 @@ export class WebhookService {
   ) {}
 
   async handleStripeEvent(event: Stripe.Event) {
-    const existing = await this.prisma.webhookEvent.findUnique({
-      where: { stripeEventId: event.id },
-    });
-
-    if (existing) {
-      this.logger.log({
-        msg: 'Duplicate event, ignored',
-        stripeEventId: event.id,
+    try {
+      await this.prisma.webhookEvent.create({
+        data: {
+          stripeEventId: event.id,
+          type: event.type,
+        },
       });
+    } catch {
       return { skipped: true };
     }
-
-    await this.prisma.webhookEvent.create({
-      data: {
-        stripeEventId: event.id,
-        type: event.type,
-      },
-    });
-
-    this.logger.log({
-      msg: 'Processing event',
-      type: event.type,
-      stripeEventId: event.id,
-    });
 
     try {
       const object = event.data.object as { id: string };
