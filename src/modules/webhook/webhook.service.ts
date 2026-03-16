@@ -109,7 +109,7 @@ export class WebhookService {
       subscriptionId,
     });
 
-    await this.prisma.subscription.update({
+    await this.prisma.subscription.updateMany({
       where: {
         stripeSubscriptionId: subscriptionId,
       },
@@ -270,7 +270,7 @@ export class WebhookService {
   }
 
   private async handleSubscriptionDeleted(stripeSubscriptionId: string) {
-    await this.prisma.subscription.update({
+    await this.prisma.subscription.updateMany({
       where: { stripeSubscriptionId },
       data: { status: SubscriptionStatus.CANCELED },
     });
