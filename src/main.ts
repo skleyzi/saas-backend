@@ -1,9 +1,6 @@
 import { fastifyAdapterConfig } from '@common/configs/pino.config';
-import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
-import { AuthGuard } from '@common/guards/auth.guard';
 import fastifyCookie from '@fastify/cookie';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -31,18 +28,12 @@ async function bootstrap() {
 
   await app.register(fastifyCookie);
 
-  app.useGlobalFilters(new AllExceptionsFilter());
-
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
       excludeExtraneousValues: true,
     }),
-  );
-
-  app.useGlobalGuards(
-    new AuthGuard(app.get(Reflector), app.get(ConfigService)),
   );
 
   await app.listen(process.env.PORT ?? 3000);

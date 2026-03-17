@@ -1,8 +1,11 @@
+import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
+import { AuthGuard } from '@common/guards/auth.guard';
 import { AuthModule } from '@modules/auth/auth.module';
 import { PrismaModule } from '@modules/prisma/prisma.module';
 import { UsersModule } from '@modules/users/users.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import Joi from 'joi';
 import { BillingModule } from './modules/billing/billing.module';
 import { StripeModule } from './modules/stripe/stripe.module';
@@ -29,6 +32,10 @@ import { WebhookModule } from './modules/webhook/webhook.module';
     StripeModule,
     BillingModule,
     WebhookModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })
 export class AppModule {}
