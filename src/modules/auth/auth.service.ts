@@ -81,26 +81,21 @@ export class AuthService {
   }
 
   async loginUser(user: User): Promise<Tokens> {
-    return await this.prisma.$transaction(async (prisma) => {
-      const session = await prisma.session.create({
-        data: {
-          userId: user.id,
-          refreshTokenHash: '',
-          expiresAt: new Date(Date.now() + this.refreshExpiresInMs),
-        },
-      });
+    const sessionId = crypto.randomUUID();
+    const tokens = this.generateTokens(user, sessionId);
 
-      const tokens = this.generateTokens(user, session.id);
+    const refreshTokenHash = await hashValue(tokens.refreshToken);
 
-      await prisma.session.update({
-        where: { id: session.id },
-        data: {
-          refreshTokenHash: await hashValue(tokens.refreshToken),
-        },
-      });
-
-      return tokens;
+    await this.prisma.session.create({
+      data: {
+        id: sessionId,
+        userId: user.id,
+        refreshTokenHash: refreshTokenHash,
+        expiresAt: new Date(Date.now() + this.refreshExpiresInMs),
+      },
     });
+
+    return tokens;
   }
 
   async refreshSession(refreshToken: string): Promise<Tokens> {

@@ -32,7 +32,7 @@ enum Role {
 }
 
 model Session {
-  id               String   @id @default(uuid())
+  id               String   @id
   userId           String
   refreshTokenHash String   @unique
   userAgent        String?
