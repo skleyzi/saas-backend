@@ -17,7 +17,7 @@ export class BillingController {
   }
 
   @Get('subscription')
-  async getCurrentSubscription(@CurrentUser('sub') userId: string) {
+  async getCurrentSubscription(@CurrentUser('id') userId: string) {
     const subscription =
       await this.billingService.getCurrentSubscription(userId);
     return new SubscriptionResponseDto(subscription);
@@ -26,7 +26,7 @@ export class BillingController {
   @Post('subscription/:id/cancel')
   async cancelSubscription(
     @Param('id') subId: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ) {
     const subscription = await this.billingService.cancelSubscription(
       userId,
@@ -42,7 +42,7 @@ export class BillingController {
   @Post('subscription/:id/resume')
   async resumeSubscription(
     @Param('id') subId: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ) {
     const subscription = await this.billingService.resumeSubscription(
       userId,
@@ -57,14 +57,14 @@ export class BillingController {
 
   @Post('checkout/:planId')
   async createCheckoutSession(
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
     @Param('planId') planId: string,
   ) {
     return await this.billingService.createCheckoutSession(userId, planId);
   }
 
   @Post('portal')
-  async getPortalUrl(@CurrentUser('sub') userId: string) {
+  async getPortalUrl(@CurrentUser('id') userId: string) {
     return await this.billingService.getPortalUrl(userId);
   }
 }
