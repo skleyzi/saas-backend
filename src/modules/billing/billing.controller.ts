@@ -1,5 +1,6 @@
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { Public } from '@common/decorators/public.decorator';
+import { SuccessResponseDto } from '@common/dto/success-response.dto';
 import { PlanResponseDto } from '@modules/billing/dto/plan-response.dto';
 import { SubscriptionResponseDto } from '@modules/billing/dto/subscription-response.dto';
 import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
@@ -29,15 +30,10 @@ export class BillingController {
     @Param('id') subId: string,
     @CurrentUser('id') userId: string,
   ) {
-    const subscription = await this.billingService.cancelSubscription(
-      userId,
-      subId,
+    await this.billingService.cancelSubscription(userId, subId);
+    return new SuccessResponseDto(
+      'Cancellation request received. It may take a few moments.',
     );
-
-    return {
-      message: 'Subscription will cancel at period end',
-      subscription: new SubscriptionResponseDto(subscription),
-    };
   }
 
   @Post('subscription/:id/resume')
@@ -46,15 +42,10 @@ export class BillingController {
     @Param('id') subId: string,
     @CurrentUser('id') userId: string,
   ) {
-    const subscription = await this.billingService.resumeSubscription(
-      userId,
-      subId,
+    await this.billingService.resumeSubscription(userId, subId);
+    return new SuccessResponseDto(
+      'Resume request received. It may take a few moments.',
     );
-
-    return {
-      message: 'Resumed subscription',
-      subscription: new SubscriptionResponseDto(subscription),
-    };
   }
 
   @Post('checkout/:planId')

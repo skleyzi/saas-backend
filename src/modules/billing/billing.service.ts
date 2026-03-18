@@ -119,11 +119,6 @@ export class BillingService {
     await this.stripeService.cancelSubscriptionAtPeriodEnd(
       subscription.stripeSubscriptionId,
     );
-
-    return await this.prisma.subscription.findUniqueOrThrow({
-      where: { id: subscriptionId },
-      include: { plan: true },
-    });
   }
 
   async resumeSubscription(userId: string, subscriptionId: string) {
@@ -152,11 +147,6 @@ export class BillingService {
     await this.stripeService.resumeSubscription(
       subscription.stripeSubscriptionId,
     );
-
-    return await this.prisma.subscription.findUniqueOrThrow({
-      where: { id: subscriptionId },
-      include: { plan: true },
-    });
   }
 
   async getPortalUrl(userId: string) {
