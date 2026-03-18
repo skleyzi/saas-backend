@@ -4,7 +4,9 @@ import { UpdateProfileDto } from '@modules/users/dto/update-profile.dto';
 import { UserResponseDto } from '@modules/users/dto/user-response.dto';
 import { UsersService } from '@modules/users/users.service';
 import { Body, Controller, Get, Patch } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('accessToken')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

@@ -4,8 +4,10 @@ import { SuccessResponseDto } from '@common/dto/success-response.dto';
 import { PlanResponseDto } from '@modules/billing/dto/plan-response.dto';
 import { SubscriptionResponseDto } from '@modules/billing/dto/subscription-response.dto';
 import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
 
+@ApiBearerAuth('accessToken')
 @Controller('billing')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
