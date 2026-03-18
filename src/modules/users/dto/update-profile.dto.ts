@@ -5,6 +5,7 @@ export class UpdateProfileDto {
   @IsEmail()
   email?: string;
 
+  /** @example "Jane Doe" */
   @IsOptional()
   @IsString()
   name?: string;
