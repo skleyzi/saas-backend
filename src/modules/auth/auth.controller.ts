@@ -5,6 +5,7 @@ import { RegisterDto } from '@modules/auth/dto/register.dto';
 import {
   Body,
   Controller,
+  HttpCode,
   Post,
   Req,
   Res,
@@ -52,6 +53,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @HttpCode(200)
   async loginUser(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: FastifyReply,
@@ -71,6 +73,7 @@ export class AuthController {
 
   @Public()
   @Post('refresh')
+  @HttpCode(200)
   async refreshSession(
     @Req() req: FastifyRequest,
     @Res({ passthrough: true }) res: FastifyReply,

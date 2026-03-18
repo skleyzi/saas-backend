@@ -4,6 +4,7 @@ import {
   BadRequestException,
   Controller,
   Headers,
+  HttpCode,
   Post,
   RawBodyRequest,
   Req,
@@ -23,6 +24,7 @@ export class WebhookController {
   ) {}
 
   @Post('stripe')
+  @HttpCode(200)
   async handleWebhook(
     @Req() req: RawBodyRequest<FastifyRequest>,
     @Headers('stripe-signature') sig: string,

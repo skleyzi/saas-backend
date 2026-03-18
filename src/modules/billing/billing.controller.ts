@@ -2,7 +2,7 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { Public } from '@common/decorators/public.decorator';
 import { PlanResponseDto } from '@modules/billing/dto/plan-response.dto';
 import { SubscriptionResponseDto } from '@modules/billing/dto/subscription-response.dto';
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { BillingService } from './billing.service';
 
 @Controller('billing')
@@ -24,6 +24,7 @@ export class BillingController {
   }
 
   @Post('subscription/:id/cancel')
+  @HttpCode(200)
   async cancelSubscription(
     @Param('id') subId: string,
     @CurrentUser('id') userId: string,
@@ -40,6 +41,7 @@ export class BillingController {
   }
 
   @Post('subscription/:id/resume')
+  @HttpCode(200)
   async resumeSubscription(
     @Param('id') subId: string,
     @CurrentUser('id') userId: string,
@@ -56,6 +58,7 @@ export class BillingController {
   }
 
   @Post('checkout/:planId')
+  @HttpCode(200)
   async createCheckoutSession(
     @CurrentUser('id') userId: string,
     @Param('planId') planId: string,
@@ -64,6 +67,7 @@ export class BillingController {
   }
 
   @Post('portal')
+  @HttpCode(200)
   async getPortalUrl(@CurrentUser('id') userId: string) {
     return await this.billingService.getPortalUrl(userId);
   }
