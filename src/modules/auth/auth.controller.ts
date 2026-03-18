@@ -1,5 +1,6 @@
 import { Public } from '@common/decorators/public.decorator';
 import { AuthService } from '@modules/auth/auth.service';
+import { AuthResponseDto } from '@modules/auth/dto/auth-response.dto';
 import { LoginDto } from '@modules/auth/dto/login.dto';
 import { RegisterDto } from '@modules/auth/dto/register.dto';
 import {
@@ -38,7 +39,7 @@ export class AuthController {
   async registerUser(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: FastifyReply,
-  ) {
+  ): Promise<AuthResponseDto> {
     const { accessToken, refreshToken } =
       await this.authService.registerUser(dto);
 
@@ -57,7 +58,7 @@ export class AuthController {
   async loginUser(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: FastifyReply,
-  ) {
+  ): Promise<AuthResponseDto> {
     const user = await this.authService.validateUser(dto);
     const { accessToken, refreshToken } =
       await this.authService.loginUser(user);
@@ -77,7 +78,7 @@ export class AuthController {
   async refreshSession(
     @Req() req: FastifyRequest,
     @Res({ passthrough: true }) res: FastifyReply,
-  ) {
+  ): Promise<AuthResponseDto> {
     const oldRefreshToken = req.cookies['refresh_token'];
     if (!oldRefreshToken)
       throw new UnauthorizedException('Refresh token missing');

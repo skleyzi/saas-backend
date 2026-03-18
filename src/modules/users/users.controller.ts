@@ -10,7 +10,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
-  getMe(@CurrentUser() user: RequestUser) {
+  getMe(@CurrentUser() user: RequestUser): UserResponseDto {
     return new UserResponseDto(user);
   }
 
@@ -18,7 +18,7 @@ export class UsersController {
   async updateProfile(
     @CurrentUser('id') userId: string,
     @Body() updateDto: UpdateProfileDto,
-  ) {
+  ): Promise<UserResponseDto> {
     const user = await this.usersService.update(userId, updateDto);
     return new UserResponseDto(user);
   }

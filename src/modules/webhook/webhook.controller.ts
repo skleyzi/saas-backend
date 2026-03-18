@@ -28,7 +28,7 @@ export class WebhookController {
   async handleWebhook(
     @Req() req: RawBodyRequest<FastifyRequest>,
     @Headers('stripe-signature') sig: string,
-  ) {
+  ): Promise<{ received: boolean }> {
     if (!sig || !req.rawBody)
       throw new BadRequestException('Missing stripe header or body');
 

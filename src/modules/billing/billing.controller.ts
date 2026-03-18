@@ -12,13 +12,15 @@ export class BillingController {
 
   @Public()
   @Get('plans')
-  async listPlans() {
+  async listPlans(): Promise<PlanResponseDto[]> {
     const plans = await this.billingService.listPlans();
     return plans.map((p) => new PlanResponseDto(p));
   }
 
   @Get('subscription')
-  async getCurrentSubscription(@CurrentUser('id') userId: string) {
+  async getCurrentSubscription(
+    @CurrentUser('id') userId: string,
+  ): Promise<SubscriptionResponseDto> {
     const subscription =
       await this.billingService.getCurrentSubscription(userId);
     return new SubscriptionResponseDto(subscription);
@@ -29,7 +31,7 @@ export class BillingController {
   async cancelSubscription(
     @Param('id') subId: string,
     @CurrentUser('id') userId: string,
-  ) {
+  ): Promise<SuccessResponseDto> {
     await this.billingService.cancelSubscription(userId, subId);
     return new SuccessResponseDto(
       'Cancellation request received. It may take a few moments.',
@@ -41,7 +43,7 @@ export class BillingController {
   async resumeSubscription(
     @Param('id') subId: string,
     @CurrentUser('id') userId: string,
-  ) {
+  ): Promise<SuccessResponseDto> {
     await this.billingService.resumeSubscription(userId, subId);
     return new SuccessResponseDto(
       'Resume request received. It may take a few moments.',
@@ -53,13 +55,15 @@ export class BillingController {
   async createCheckoutSession(
     @CurrentUser('id') userId: string,
     @Param('planId') planId: string,
-  ) {
+  ): Promise<{ url: string | null }> {
     return await this.billingService.createCheckoutSession(userId, planId);
   }
 
   @Post('portal')
   @HttpCode(200)
-  async getPortalUrl(@CurrentUser('id') userId: string) {
+  async getPortalUrl(
+    @CurrentUser('id') userId: string,
+  ): Promise<{ url: string }> {
     return await this.billingService.getPortalUrl(userId);
   }
 }
