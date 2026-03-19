@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import Joi from 'joi';
 import { BillingModule } from './modules/billing/billing.module';
+import { ResourcesModule } from './modules/resources/resources.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
 
@@ -32,6 +33,7 @@ import { WebhookModule } from './modules/webhook/webhook.module';
     StripeModule,
     BillingModule,
     WebhookModule,
+    ResourcesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
