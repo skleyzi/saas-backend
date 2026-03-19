@@ -16,7 +16,7 @@ export class SubscriptionResponseDto {
   currentPeriodEnd!: Date;
 
   @Expose()
-  cancelAtPeriodEnd!: boolean;
+  cancelAt?: Date | null;
 
   @Expose()
   @Type(() => PlanResponseDto)

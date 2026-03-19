@@ -111,12 +111,12 @@ export class BillingService {
     if (!subscription) throw new NotFoundException('Subscription not found');
     if (subscription.status === SubscriptionStatus.CANCELED)
       throw new BadRequestException('Subscription already canceled');
-    if (subscription.cancelAtPeriodEnd)
+    if (subscription.cancelAt)
       throw new BadRequestException(
         'Subscription already marked for cancellation',
       );
 
-    await this.stripeService.cancelSubscriptionAtPeriodEnd(
+    await this.stripeService.cancelSubscription(
       subscription.stripeSubscriptionId,
     );
   }
@@ -128,7 +128,7 @@ export class BillingService {
 
     if (!subscription) throw new NotFoundException('Subscription not found');
 
-    if (!subscription.cancelAtPeriodEnd) {
+    if (!subscription.cancelAt) {
       throw new BadRequestException(
         'Subscription is not scheduled for cancellation',
       );

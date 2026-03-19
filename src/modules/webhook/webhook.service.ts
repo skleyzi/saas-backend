@@ -261,7 +261,9 @@ export class WebhookService {
       status: BillingMapper.toInternalStatus(subscription.status),
       currentPeriodStart: new Date(item.current_period_start * 1000),
       currentPeriodEnd: new Date(item.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      cancelAt: subscription.cancel_at
+        ? new Date(subscription.cancel_at * 1000)
+        : null,
     };
 
     await this.prisma.subscription.upsert({
