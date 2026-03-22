@@ -11,16 +11,10 @@ import {
   verifyRefreshToken,
 } from '@common/utils/jwt';
 import { User } from '@db/browser';
-import { Prisma } from '@db/client';
 import { LoginDto } from '@modules/auth/dto/login.dto';
 import { RegisterDto } from '@modules/auth/dto/register.dto';
 import { PrismaService } from '@modules/prisma/prisma.service';
-import {
-  ConflictException,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 type Tokens = {
@@ -44,26 +38,16 @@ export class AuthService {
     const { password, ...userData } = registerDto;
     const passwordHash = await hashPassword(password);
 
-    try {
-      const user = await this.prisma.user.create({
-        data: {
-          ...userData,
-          passwordHash,
-        },
-      });
+    const user = await this.prisma.user.create({
+      data: {
+        ...userData,
+        passwordHash,
+      },
+    });
 
-      this.logger.log({ msg: 'User registered', userId: user.id });
+    this.logger.log({ msg: 'User registered', userId: user.id });
 
-      return await this.loginUser(user);
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        throw new ConflictException('Email is already in use');
-      }
-      throw error;
-    }
+    return await this.loginUser(user);
   }
 
   async validateUser(loginDto: LoginDto): Promise<User> {

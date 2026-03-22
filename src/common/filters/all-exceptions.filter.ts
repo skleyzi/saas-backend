@@ -1,3 +1,4 @@
+import { Prisma } from '@db/client';
 import {
   ArgumentsHost,
   Catch,
@@ -15,32 +16,37 @@ interface HttpExceptionResponse {
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly fieldLabels: Record<string, string> = {
+    email: 'Email address',
+  };
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
     const request = ctx.getRequest<FastifyRequest>();
 
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message: string | string[] = 'Internal server error';
 
-    const exceptionResponse =
-      exception instanceof HttpException
-        ? exception.getResponse()
-        : 'Internal server error';
-
-    const message =
-      typeof exceptionResponse === 'object'
-        ? (exceptionResponse as HttpExceptionResponse).message
-        : exceptionResponse;
+    if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      const prismaHandled = this.handlePrismaError(exception);
+      status = prismaHandled.status;
+      message = prismaHandled.message;
+    } else if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const exceptionResponse = exception.getResponse();
+      message =
+        typeof exceptionResponse === 'object'
+          ? (exceptionResponse as HttpExceptionResponse).message
+          : exceptionResponse;
+    }
 
     if (status >= 500) {
       request.log.error(
         { err: exception, body: request.body },
         'Unhandled Exception',
       );
-    } else if (status >= 400) {
+    } else {
       request.log.warn({ message, body: request.body }, 'Client Error');
     }
 
@@ -50,5 +56,36 @@ export class AllExceptionsFilter implements ExceptionFilter {
       path: request.url,
       message: Array.isArray(message) ? message[0] : message,
     });
+  }
+
+  private handlePrismaError(error: Prisma.PrismaClientKnownRequestError) {
+    switch (error.code) {
+      case 'P2002': {
+        const target = error.meta?.target as string[] | undefined;
+        const field = target ? target[0] : null;
+        const label = field ? this.fieldLabels[field] : 'Field';
+        return {
+          status: HttpStatus.CONFLICT,
+          message: `${label} is already in use`,
+        };
+      }
+      case 'P2025': {
+        return {
+          status: HttpStatus.NOT_FOUND,
+          message: 'Record not found',
+        };
+      }
+      case 'P2003': {
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Foreign key constraint failed',
+        };
+      }
+      default:
+        return {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Database error',
+        };
+    }
   }
 }
