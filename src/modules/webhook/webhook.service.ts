@@ -66,13 +66,11 @@ export class WebhookService {
         }
         case 'invoice.paid':
         case 'invoice.payment_failed': {
-          await this.handleInvoiceEvent(event.data.object as Stripe.Invoice);
+          await this.handleInvoiceEvent(event.data.object);
           break;
         }
         case 'checkout.session.expired': {
-          await this.handleSessionExpired(
-            event.data.object as Stripe.Checkout.Session,
-          );
+          await this.handleSessionExpired(event.data.object);
           break;
         }
         default:
