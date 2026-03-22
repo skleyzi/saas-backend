@@ -34,4 +34,8 @@ export class ResourcesService {
       data: { ...createResourceDto, userId },
     });
   }
+
+  async list(userId: string) {
+    return await this.prisma.resource.findMany({ where: { userId } });
+  }
 }

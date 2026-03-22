@@ -1,7 +1,7 @@
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { CreateResourceDto } from '@modules/resources/dto/create-resource.dto';
 import { ResourceResponseDto } from '@modules/resources/dto/resource-response.dto';
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
 
@@ -17,5 +17,13 @@ export class ResourcesController {
   ): Promise<ResourceResponseDto> {
     const resource = await this.resourcesService.create(userId, dto);
     return new ResourceResponseDto(resource);
+  }
+
+  @Get()
+  async listResources(
+    @CurrentUser('id') userId: string,
+  ): Promise<ResourceResponseDto[]> {
+    const resources = await this.resourcesService.list(userId);
+    return resources.map((r) => new ResourceResponseDto(r));
   }
 }
