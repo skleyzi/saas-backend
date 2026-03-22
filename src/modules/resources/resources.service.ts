@@ -1,7 +1,12 @@
 import { SubscriptionStatus } from '@db/enums';
 import { PrismaService } from '@modules/prisma/prisma.service';
 import { CreateResourceDto } from '@modules/resources/dto/create-resource.dto';
-import { ForbiddenException, HttpException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 @Injectable()
 export class ResourcesService {
@@ -37,5 +42,15 @@ export class ResourcesService {
 
   async list(userId: string) {
     return await this.prisma.resource.findMany({ where: { userId } });
+  }
+
+  async findById(userId: string, resourceId: string) {
+    const resource = await this.prisma.resource.findFirst({
+      where: { id: resourceId, userId },
+    });
+
+    if (!resource) throw new NotFoundException('Resource not found');
+
+    return resource;
   }
 }
