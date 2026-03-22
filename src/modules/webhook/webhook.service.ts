@@ -116,7 +116,7 @@ export class WebhookService {
     });
 
     this.logger.log({
-      msg: 'Customer update synced with user',
+      msg: 'Updated user for updated customer',
       stripeCustomerId: customer.id,
     });
   }
@@ -130,7 +130,7 @@ export class WebhookService {
     });
 
     this.logger.log({
-      msg: 'Cleared stripeCustomerId for deleted customer',
+      msg: 'Clared stripeCustomerId on user for deleted customer',
       stripeCustomerId: customer.id,
     });
   }
@@ -143,11 +143,6 @@ export class WebhookService {
 
     if (!subscriptionId) return;
 
-    this.logger.log({
-      msg: 'Checkout session expired, updating status',
-      subscriptionId,
-    });
-
     await this.prisma.subscription.updateMany({
       where: {
         stripeSubscriptionId: subscriptionId,
@@ -155,6 +150,11 @@ export class WebhookService {
       data: {
         status: SubscriptionStatus.INCOMPLETE_EXPIRED,
       },
+    });
+
+    this.logger.log({
+      msg: 'Checkout session expired, status updated',
+      subscriptionId,
     });
   }
 
@@ -218,26 +218,27 @@ export class WebhookService {
         stripePriceId: price.id,
       },
     });
+
+    this.logger.log({
+      msg: 'Plan upserted',
+      stripeProductId: product.id,
+      stripePriceId: price.id,
+    });
   }
 
   private async handlePriceDeleted(stripePriceId: string) {
-    this.logger.log({
-      msg: 'Marking Plan as inactive',
-      stripePriceId,
-    });
-
     await this.prisma.plan.updateMany({
       where: { stripePriceId },
       data: { isActive: false },
     });
+
+    this.logger.log({
+      msg: 'Plan deactivated',
+      stripePriceId,
+    });
   }
 
   private async handleProductUpdate(product: Stripe.Product) {
-    this.logger.log({
-      msg: 'Updating all plans for product',
-      productId: product.id,
-    });
-
     await this.prisma.plan.updateMany({
       where: { stripeProductId: product.id },
       data: {
@@ -248,6 +249,11 @@ export class WebhookService {
           : undefined,
       },
     });
+
+    this.logger.log({
+      msg: 'Updated all plans for product',
+      productId: product.id,
+    });
   }
 
   private async upsertSubscription(subscription: Stripe.Subscription) {
@@ -257,12 +263,12 @@ export class WebhookService {
     if (userId) {
       user = await this.prisma.user.findUnique({ where: { id: userId } });
     } else {
-      const customerId =
+      const stripeCustomerId =
         typeof subscription.customer === 'string'
           ? subscription.customer
           : subscription.customer.id;
       user = await this.prisma.user.findUnique({
-        where: { stripeCustomerId: customerId },
+        where: { stripeCustomerId },
       });
     }
 
@@ -292,11 +298,6 @@ export class WebhookService {
       return;
     }
 
-    this.logger.log({
-      msg: 'Upserting subscription',
-      subscriptionId: subscription.id,
-    });
-
     const subscriptionData = {
       status: BillingMapper.toInternalStatus(subscription.status),
       currentPeriodStart: new Date(item.current_period_start * 1000),
@@ -318,16 +319,22 @@ export class WebhookService {
         stripeSubscriptionId: subscription.id,
       },
     });
+
+    this.logger.log({
+      msg: 'Subscription upserted',
+      subscriptionId: subscription.id,
+    });
   }
 
   private async handleSubscriptionDeleted(stripeSubscriptionId: string) {
-    this.logger.log({
-      msg: 'Subscription marked as canceled',
-      stripeSubscriptionId,
-    });
     await this.prisma.subscription.updateMany({
       where: { stripeSubscriptionId },
       data: { status: SubscriptionStatus.CANCELED },
+    });
+
+    this.logger.log({
+      msg: 'Subscription canceled',
+      stripeSubscriptionId,
     });
   }
 
@@ -341,17 +348,17 @@ export class WebhookService {
 
     if (!subscriptionId) return;
 
-    this.logger.log({
-      msg: 'Processing invoice event',
-      invoiceId: invoice.id,
-      subscriptionId,
-      type: invoice.billing_reason,
-    });
-
     const subscription =
       await this.stripeService.retrieveSubscription(subscriptionId);
 
     await this.upsertSubscription(subscription);
+
+    this.logger.log({
+      msg: 'Invoice event processed',
+      invoiceId: invoice.id,
+      subscriptionId,
+      billingReason: invoice.billing_reason,
+    });
   }
 
   private isSupportedPrice(price: Stripe.Price): {
