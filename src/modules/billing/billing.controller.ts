@@ -7,8 +7,8 @@ import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
 
-@ApiBearerAuth('accessToken')
 @Controller('billing')
+@ApiBearerAuth('accessToken')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
 
