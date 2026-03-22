@@ -19,9 +19,12 @@ export class UsersController {
   @Patch('me')
   async updateProfile(
     @CurrentUser('id') userId: string,
-    @Body() updateDto: UpdateProfileDto,
+    @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<UserResponseDto> {
-    const user = await this.usersService.update(userId, updateDto);
+    const user = await this.usersService.updateProfile(
+      userId,
+      updateProfileDto,
+    );
     return new UserResponseDto(user);
   }
 }
