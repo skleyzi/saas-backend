@@ -65,4 +65,10 @@ export class ResourcesService {
       data: updateResourceDto,
     });
   }
+
+  async delete(userId: string, resourceId: string) {
+    await this.prisma.resource.delete({
+      where: { id: resourceId, userId },
+    });
+  }
 }

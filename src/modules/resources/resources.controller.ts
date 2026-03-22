@@ -2,7 +2,16 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { CreateResourceDto } from '@modules/resources/dto/create-resource.dto';
 import { ResourceResponseDto } from '@modules/resources/dto/resource-response.dto';
 import { UpdateResourceDto } from '@modules/resources/dto/update-resource.dto';
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
 
@@ -49,5 +58,14 @@ export class ResourcesController {
       dto,
     );
     return new ResourceResponseDto(resource);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteResource(
+    @CurrentUser('id') userId: string,
+    @Param('id') resourceId: string,
+  ): Promise<void> {
+    await this.resourcesService.delete(userId, resourceId);
   }
 }
