@@ -43,6 +43,15 @@ export class WebhookService {
           await this.handleProductUpdate(product);
           break;
         }
+        case 'customer.updated': {
+          const customer = await this.stripeService.retrieveCustomer(object.id);
+          await this.handleCustomerUpdated(customer);
+          break;
+        }
+        case 'customer.deleted': {
+          await this.handleCustomerDeleted(event.data.object);
+          break;
+        }
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
         case 'customer.subscription.paused':
@@ -93,6 +102,39 @@ export class WebhookService {
       });
       throw error;
     }
+  }
+
+  private async handleCustomerUpdated(
+    customer: Stripe.Customer | Stripe.DeletedCustomer,
+  ) {
+    if (customer.deleted) return;
+
+    await this.prisma.user.updateMany({
+      where: { stripeCustomerId: customer.id },
+      data: {
+        email: customer.email ?? undefined,
+        name: customer.name ?? undefined,
+      },
+    });
+
+    this.logger.log({
+      msg: 'Customer update synced with user',
+      stripeCustomerId: customer.id,
+    });
+  }
+
+  private async handleCustomerDeleted(customer: Stripe.Customer) {
+    const stripeCustomerId = customer.id;
+
+    await this.prisma.user.updateMany({
+      where: { stripeCustomerId },
+      data: { stripeCustomerId: null },
+    });
+
+    this.logger.log({
+      msg: 'Cleared stripeCustomerId for deleted customer',
+      stripeCustomerId: customer.id,
+    });
   }
 
   private async handleSessionExpired(session: Stripe.Checkout.Session) {

@@ -50,6 +50,10 @@ export class StripeService {
     );
   }
 
+  async retrieveCustomer(customerId: string) {
+    return await this.stripe.customers.retrieve(customerId);
+  }
+
   async retrieveProduct(productId: string) {
     return await this.stripe.products.retrieve(productId);
   }
