@@ -1,7 +1,8 @@
 import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { CreateResourceDto } from '@modules/resources/dto/create-resource.dto';
 import { ResourceResponseDto } from '@modules/resources/dto/resource-response.dto';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { UpdateResourceDto } from '@modules/resources/dto/update-resource.dto';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ResourcesService } from './resources.service';
 
@@ -33,6 +34,20 @@ export class ResourcesController {
     @Param('id') resourceId: string,
   ): Promise<ResourceResponseDto> {
     const resource = await this.resourcesService.findById(userId, resourceId);
+    return new ResourceResponseDto(resource);
+  }
+
+  @Patch(':id')
+  async updateResource(
+    @CurrentUser('id') userId: string,
+    @Param('id') resourceId: string,
+    @Body() dto: UpdateResourceDto,
+  ): Promise<ResourceResponseDto> {
+    const resource = await this.resourcesService.update(
+      userId,
+      resourceId,
+      dto,
+    );
     return new ResourceResponseDto(resource);
   }
 }

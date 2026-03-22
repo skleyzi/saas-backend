@@ -1,6 +1,7 @@
 import { SubscriptionStatus } from '@db/enums';
 import { PrismaService } from '@modules/prisma/prisma.service';
 import { CreateResourceDto } from '@modules/resources/dto/create-resource.dto';
+import { UpdateResourceDto } from '@modules/resources/dto/update-resource.dto';
 import {
   ForbiddenException,
   HttpException,
@@ -52,5 +53,16 @@ export class ResourcesService {
     if (!resource) throw new NotFoundException('Resource not found');
 
     return resource;
+  }
+
+  async update(
+    userId: string,
+    resourceId: string,
+    updateResourceDto: UpdateResourceDto,
+  ) {
+    return await this.prisma.resource.update({
+      where: { id: resourceId, userId },
+      data: updateResourceDto,
+    });
   }
 }
