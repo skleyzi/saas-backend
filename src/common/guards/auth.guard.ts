@@ -45,7 +45,7 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException('User is inactive or not found');
       }
 
-      request.user = user;
+      request.user = { ...user, sid: payload.sid };
       request.log = request.log.child({ userId: user.id });
     } catch (e) {
       throw new UnauthorizedException(
