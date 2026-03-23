@@ -1,3 +1,4 @@
+import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { Public } from '@common/decorators/public.decorator';
 import { AuthService } from '@modules/auth/auth.service';
 import { AuthResponseDto } from '@modules/auth/dto/auth-response.dto';
@@ -101,5 +102,29 @@ export class AuthController {
     );
 
     return { accessToken };
+  }
+
+  @Post('logout')
+  @HttpCode(204)
+  async logout(
+    @CurrentUser('sid') sid: string,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    await this.authService.logout(sid);
+    res.clearCookie('refresh_token', {
+      path: this.getRefreshTokenCookieOptions().path,
+    });
+  }
+
+  @Post('logout/all')
+  @HttpCode(204)
+  async logoutAll(
+    @CurrentUser('id') userId: string,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    await this.authService.logoutAll(userId);
+    res.clearCookie('refresh_token', {
+      path: this.getRefreshTokenCookieOptions().path,
+    });
   }
 }

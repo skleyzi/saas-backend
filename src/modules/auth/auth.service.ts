@@ -140,6 +140,20 @@ export class AuthService {
     return newTokens;
   }
 
+  async logout(sessionId: string) {
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { revoked: true },
+    });
+  }
+
+  async logoutAll(userId: string) {
+    await this.prisma.session.updateMany({
+      where: { userId, revoked: false },
+      data: { revoked: true },
+    });
+  }
+
   private validateRefreshToken(refreshToken: string): RefreshTokenPayload {
     try {
       return verifyRefreshToken(refreshToken, this.configService);
