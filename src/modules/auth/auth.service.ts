@@ -34,7 +34,11 @@ export class AuthService {
       Number(configService.getOrThrow('JWT_REFRESH_EXPIRES_IN_SECONDS')) * 1000;
   }
 
-  async registerUser(registerDto: RegisterDto): Promise<Tokens> {
+  async registerUser(
+    registerDto: RegisterDto,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<Tokens> {
     const { password, ...userData } = registerDto;
     const passwordHash = await hashPassword(password);
 
@@ -47,7 +51,7 @@ export class AuthService {
 
     this.logger.log({ msg: 'User registered', userId: user.id });
 
-    return await this.loginUser(user);
+    return await this.loginUser(user, ip, userAgent);
   }
 
   async validateUser(loginDto: LoginDto): Promise<User> {
@@ -64,7 +68,11 @@ export class AuthService {
     return user;
   }
 
-  async loginUser(user: User): Promise<Tokens> {
+  async loginUser(
+    user: User,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<Tokens> {
     const sessionId = crypto.randomUUID();
     const tokens = this.generateTokens(user, sessionId);
 
@@ -76,6 +84,8 @@ export class AuthService {
         userId: user.id,
         refreshTokenHash: refreshTokenHash,
         expiresAt: new Date(Date.now() + this.refreshExpiresInMs),
+        ipAddress: ip ?? null,
+        userAgent: userAgent ?? null,
       },
     });
 

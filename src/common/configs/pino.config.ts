@@ -25,4 +25,4 @@ export const pinoConfig: pino.LoggerOptions = {
 export const fastifyAdapterConfig = {
   logger: pinoConfig,
   genReqId: () => crypto.randomUUID(),
-};
+}; //add { trustProxy: true } for reverse proxy in production
