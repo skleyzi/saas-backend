@@ -27,7 +27,7 @@ export class AuthController {
       httpOnly: true,
       secure: this.configService.get('NODE_ENV') === 'production',
       sameSite: 'strict' as const,
-      path: '/',
+      path: '/auth/refresh',
       maxAge: Number(
         this.configService.getOrThrow('JWT_REFRESH_EXPIRES_IN_SECONDS'),
       ),
