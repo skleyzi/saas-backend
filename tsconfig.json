@@ -17,6 +17,7 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
+    "types": ["jest"],
     "paths": {
       "@db/*": ["./generated/prisma/*"],
       "@common/*": ["./src/common/*"],
