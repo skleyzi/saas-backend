@@ -40,7 +40,7 @@ describe('AuthService', () => {
       password: 'test123',
     };
 
-    it('should register and return tokens', async () => {
+    it('should create user and return tokens', async () => {
       const createdUser = {
         id: 'user-id',
         email: registerDto.email,
@@ -112,7 +112,7 @@ describe('AuthService', () => {
       expect(result).toEqual(user);
     });
 
-    it('should throw on wrong password', async () => {
+    it('should throw on invalid password', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(user);
       jest.spyOn(crypto, 'verifyPassword').mockResolvedValue(false);
 
@@ -131,7 +131,7 @@ describe('AuthService', () => {
   });
 
   describe('loginUser', () => {
-    it('should return tokens', async () => {
+    it('should create session and return tokens', async () => {
       mockPrisma.session.create.mockResolvedValue({});
 
       const result = await authService.loginUser(
@@ -258,7 +258,7 @@ describe('AuthService', () => {
   });
 
   describe('logout', () => {
-    it('should revoke session', async () => {
+    it('should revoke current session', async () => {
       mockPrisma.session.update.mockResolvedValue({});
 
       await authService.logout('session-id');
