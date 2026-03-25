@@ -162,20 +162,39 @@ describe('WebhookService', () => {
     });
 
     it('should deactivate plan if price is unsupported', async () => {
-      const unsupportedPrice = {
-        ...price,
-        recurring: { interval: 'week' },
-      } as Stripe.Price;
+      const unsupportedPrices = [
+        {
+          ...price,
+          type: 'one_time',
+          recurring: null,
+        },
+        {
+          ...price,
+          recurring: { usage_type: 'metered', interval: 'month' },
+        },
+        {
+          ...price,
+          billing_scheme: 'tiered',
+        },
+        {
+          ...price,
+          recurring: { interval: 'week', interval_count: 1 },
+        },
+      ];
 
       mockPrisma.plan.updateMany.mockResolvedValue({});
 
-      await webhookService['upsertPrice'](unsupportedPrice);
+      for (const price of unsupportedPrices) {
+        await webhookService['upsertPrice'](price as unknown as Stripe.Price);
 
-      expect(mockPrisma.plan.updateMany).toHaveBeenCalledWith({
-        where: { stripePriceId: price.id },
-        data: { isActive: false },
-      });
-      expect(mockPrisma.plan.upsert).not.toHaveBeenCalled();
+        expect(mockPrisma.plan.updateMany).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { stripePriceId: price.id },
+            data: { isActive: false },
+          }),
+        );
+        expect(mockPrisma.plan.upsert).not.toHaveBeenCalled();
+      }
     });
 
     it('should not upsert plan if product not found', async () => {
