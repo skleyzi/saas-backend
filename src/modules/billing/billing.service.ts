@@ -50,10 +50,10 @@ export class BillingService {
     }
 
     const plan = await this.prisma.plan.findUnique({
-      where: { id: planId, isActive: true },
+      where: { id: planId },
     });
 
-    if (!plan) {
+    if (!plan || !plan.isActive) {
       throw new NotFoundException('Plan not found or inactive');
     }
 
