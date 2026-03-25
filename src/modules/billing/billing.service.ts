@@ -26,14 +26,14 @@ export class BillingService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    const existingActive = user.subscriptions.find(
+    const hasActiveLocal = user.subscriptions.some(
       (s) =>
         s.status === SubscriptionStatus.ACTIVE ||
         s.status === SubscriptionStatus.TRIALING ||
         s.status === SubscriptionStatus.PAST_DUE,
     );
 
-    if (existingActive)
+    if (hasActiveLocal)
       throw new BadRequestException(
         'User already has active or past due subscription',
       );
@@ -57,7 +57,7 @@ export class BillingService {
       throw new NotFoundException('Plan not found or inactive');
     }
 
-    const customerId = await this.upsertCustomer(user);
+    const customerId = await this.ensureCustomer(user);
 
     const session = await this.stripeService.createCheckoutSession(
       customerId,
@@ -109,8 +109,10 @@ export class BillingService {
     });
 
     if (!subscription) throw new NotFoundException('Subscription not found');
+
     if (subscription.status === SubscriptionStatus.CANCELED)
       throw new BadRequestException('Subscription is already canceled');
+
     if (subscription.cancelAt)
       throw new BadRequestException(
         'Subscription already scheduled for cancellation',
@@ -176,7 +178,7 @@ export class BillingService {
     return { url };
   }
 
-  private async upsertCustomer(user: {
+  private async ensureCustomer(user: {
     id: string;
     email: string;
     name: string;
