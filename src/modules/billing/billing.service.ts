@@ -26,6 +26,18 @@ export class BillingService {
 
     if (!user) throw new NotFoundException('User not found');
 
+    const existingActive = user.subscriptions.find(
+      (s) =>
+        s.status === SubscriptionStatus.ACTIVE ||
+        s.status === SubscriptionStatus.TRIALING ||
+        s.status === SubscriptionStatus.PAST_DUE,
+    );
+
+    if (existingActive)
+      throw new BadRequestException(
+        'User already has active or past due subscription',
+      );
+
     if (
       user.stripeCustomerId &&
       (await this.stripeService.hasActiveSubscription(user.stripeCustomerId))
@@ -44,18 +56,6 @@ export class BillingService {
     if (!plan) {
       throw new NotFoundException('Plan not found or inactive');
     }
-
-    const existingActive = user.subscriptions.find(
-      (s) =>
-        s.status === SubscriptionStatus.ACTIVE ||
-        s.status === SubscriptionStatus.TRIALING ||
-        s.status === SubscriptionStatus.PAST_DUE,
-    );
-
-    if (existingActive)
-      throw new BadRequestException(
-        'User already has active or past due subscription',
-      );
 
     const customerId = await this.upsertCustomer(user);
 
