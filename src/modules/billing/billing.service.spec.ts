@@ -227,6 +227,9 @@ describe('BillingService', () => {
       await expect(
         billingService.cancelSubscription(userId, subscriptionId),
       ).rejects.toThrow(BadRequestException);
+      expect(mockStripe.cancelSubscription).toHaveBeenCalledWith(
+        subscriptionId,
+      );
     });
   });
 
@@ -282,13 +285,16 @@ describe('BillingService', () => {
       mockPrisma.subscription.findFirst.mockResolvedValue({
         stripeSubscriptionId: subscriptionId,
         status: SubscriptionStatus.ACTIVE,
-        cancelAt: null,
+        cancelAt: new Date(),
       });
       mockStripe.resumeSubscription.mockRejectedValue(new Error());
 
       await expect(
         billingService.resumeSubscription(userId, subscriptionId),
       ).rejects.toThrow(BadRequestException);
+      expect(mockStripe.resumeSubscription).toHaveBeenCalledWith(
+        subscriptionId,
+      );
     });
   });
 
