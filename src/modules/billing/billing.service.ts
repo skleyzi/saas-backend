@@ -21,7 +21,13 @@ export class BillingService {
   async createCheckoutSession(userId: string, planId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { subscriptions: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        stripeCustomerId: true,
+        subscriptions: { select: { status: true } },
+      },
     });
 
     if (!user) throw new NotFoundException('User not found');
