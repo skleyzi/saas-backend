@@ -27,6 +27,8 @@ describe('BillingService', () => {
       ],
     }).compile();
 
+    module.useLogger(false);
+
     billingService = module.get<BillingService>(BillingService);
   });
 

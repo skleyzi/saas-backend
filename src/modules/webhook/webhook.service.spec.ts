@@ -65,6 +65,8 @@ describe('WebhookService', () => {
       ],
     }).compile();
 
+    module.useLogger(false);
+
     webhookService = module.get<WebhookService>(WebhookService);
   });
 
