@@ -104,7 +104,7 @@ export class BillingService {
   }
 
   async cancelSubscription(userId: string, subscriptionId: string) {
-    const subscription = await this.prisma.subscription.findUnique({
+    const subscription = await this.prisma.subscription.findFirst({
       where: { id: subscriptionId, userId },
     });
 
@@ -122,7 +122,7 @@ export class BillingService {
   }
 
   async resumeSubscription(userId: string, subscriptionId: string) {
-    const subscription = await this.prisma.subscription.findUnique({
+    const subscription = await this.prisma.subscription.findFirst({
       where: { id: subscriptionId, userId },
     });
 
