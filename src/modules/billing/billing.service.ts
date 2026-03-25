@@ -110,15 +110,22 @@ export class BillingService {
 
     if (!subscription) throw new NotFoundException('Subscription not found');
     if (subscription.status === SubscriptionStatus.CANCELED)
-      throw new BadRequestException('Subscription already canceled');
+      throw new BadRequestException('Subscription is already canceled');
     if (subscription.cancelAt)
       throw new BadRequestException(
-        'Subscription already marked for cancellation',
+        'Subscription already scheduled for cancellation',
       );
 
-    await this.stripeService.cancelSubscription(
-      subscription.stripeSubscriptionId,
-    );
+    try {
+      await this.stripeService.cancelSubscription(
+        subscription.stripeSubscriptionId,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : error;
+      this.logger.error(`Stripe failed to cancel subscription: ${message}`);
+
+      throw new BadRequestException('Failed to cancel subscription');
+    }
   }
 
   async resumeSubscription(userId: string, subscriptionId: string) {
@@ -128,25 +135,26 @@ export class BillingService {
 
     if (!subscription) throw new NotFoundException('Subscription not found');
 
+    if (subscription.status === SubscriptionStatus.CANCELED) {
+      throw new BadRequestException('Subscription is already canceled');
+    }
+
     if (!subscription.cancelAt) {
       throw new BadRequestException(
         'Subscription is not scheduled for cancellation',
       );
     }
 
-    const resumableStatuses: Partial<SubscriptionStatus>[] = [
-      SubscriptionStatus.ACTIVE,
-      SubscriptionStatus.TRIALING,
-    ];
-    if (!resumableStatuses.includes(subscription.status)) {
-      throw new BadRequestException(
-        `Cannot resume a subscription with status: ${subscription.status}`,
+    try {
+      await this.stripeService.resumeSubscription(
+        subscription.stripeSubscriptionId,
       );
-    }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : error;
+      this.logger.error(`Stripe failed to resume subscription: ${message}`);
 
-    await this.stripeService.resumeSubscription(
-      subscription.stripeSubscriptionId,
-    );
+      throw new BadRequestException('Failed to resume subscription');
+    }
   }
 
   async getPortalUrl(userId: string) {
