@@ -1,6 +1,8 @@
 import { fastifyAdapterConfig } from '@common/configs/pino.config';
 import fastifyCookie from '@fastify/cookie';
+import { fastifyHelmet } from '@fastify/helmet';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -25,6 +27,14 @@ async function bootstrap() {
     warn: (msg) => pinoInstance.warn(msg),
     debug: (msg) => pinoInstance.debug(msg),
     verbose: (msg) => pinoInstance.trace(msg),
+  });
+
+  await app.register(fastifyHelmet);
+
+  app.enableCors({
+    origin: app.get(ConfigService).getOrThrow('FRONTEND_URL'),
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   });
 
   await app.register(fastifyCookie);
