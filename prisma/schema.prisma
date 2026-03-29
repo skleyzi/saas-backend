@@ -105,6 +105,7 @@ model Subscription {
   plan Plan @relation(fields: [planId], references: [id])
 
   @@index([userId])
+  @@index([userId, status])
   @@index([planId])
   @@index([currentPeriodEnd])
 }
