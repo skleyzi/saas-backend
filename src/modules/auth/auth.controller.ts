@@ -14,9 +14,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { minutes, Throttle } from '@nestjs/throttler';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 @Controller('auth')
+@Throttle({ default: { limit: 10, ttl: minutes(15) } })
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

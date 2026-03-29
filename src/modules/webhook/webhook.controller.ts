@@ -10,12 +10,14 @@ import {
   Req,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SkipThrottle } from '@nestjs/throttler';
 import { FastifyRequest } from 'fastify';
 import Stripe from 'stripe';
 import { WebhookService } from './webhook.service';
 
 @Public()
 @Controller('webhook')
+@SkipThrottle()
 export class WebhookController {
   constructor(
     private readonly stripeService: StripeService,
