@@ -3,7 +3,7 @@ import { RequestUser } from '@common/types/auth-request.types';
 import { UpdateProfileDto } from '@modules/users/dto/update-profile.dto';
 import { UserResponseDto } from '@modules/users/dto/user-response.dto';
 import { UsersService } from '@modules/users/users.service';
-import { Body, Controller, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Patch } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiBearerAuth('accessToken')
@@ -26,5 +26,11 @@ export class UsersController {
       updateProfileDto,
     );
     return new UserResponseDto(user);
+  }
+
+  @Delete('me')
+  @HttpCode(204)
+  async deleteMe(@CurrentUser('id') userId: string) {
+    await this.usersService.deleteById(userId);
   }
 }
