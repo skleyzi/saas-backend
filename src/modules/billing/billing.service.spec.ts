@@ -68,7 +68,7 @@ describe('BillingService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw if user has an active subscription in DB', async () => {
+    it('should throw if user has an active subscription', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: userId,
         subscriptions: [{ status: SubscriptionStatus.ACTIVE }],
@@ -79,24 +79,11 @@ describe('BillingService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw if user has past due subscription in DB', async () => {
+    it('should throw if user has past due subscription', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: userId,
         subscriptions: [{ status: SubscriptionStatus.PAST_DUE }],
       });
-
-      await expect(
-        billingService.createCheckoutSession(userId, planId),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw if user has an active subscription in Stripe', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: userId,
-        stripeCustomerId: 'cus-id',
-        subscriptions: [],
-      });
-      mockStripe.hasActiveSubscription.mockResolvedValue(true);
 
       await expect(
         billingService.createCheckoutSession(userId, planId),

@@ -41,19 +41,8 @@ export class BillingService {
 
     if (hasActiveLocal)
       throw new BadRequestException(
-        'User already has active or past due subscription',
+        'You already have an active or past due subscription',
       );
-
-    if (
-      user.stripeCustomerId &&
-      (await this.stripeService.hasActiveSubscription(user.stripeCustomerId))
-    ) {
-      this.logger.warn({
-        msg: 'Found ghost sub in Stripe, blocking checkout',
-        userId,
-      });
-      throw new BadRequestException('You already have an active subscription.');
-    }
 
     const plan = await this.prisma.plan.findUnique({
       where: { id: planId },
