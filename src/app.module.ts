@@ -32,9 +32,18 @@ import { WebhookModule } from './modules/webhook/webhook.module';
         JWT_REFRESH_SECRET: Joi.string().required(),
         JWT_REFRESH_EXPIRES_IN_SECONDS: Joi.number().required(),
         STRIPE_SECRET_KEY: Joi.string().required(),
+        STRIPE_WEBHOOK_SECRET: Joi.string().required(),
         SUCCESS_URL: Joi.string().uri().required(),
         CANCEL_URL: Joi.string().uri().required(),
+        BILLING_SETTINGS_URL: Joi.string().uri().required(),
+        FRONTEND_URL: Joi.string().uri().required(),
+        NODE_ENV: Joi.string()
+          .valid('development', 'production', 'test')
+          .default('development'),
       }),
+      validationOptions: {
+        abortEarly: true,
+      },
     }),
     UsersModule,
     AuthModule,
