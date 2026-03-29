@@ -10,6 +10,7 @@ import { minutes, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import Joi from 'joi';
 import { AdminModule } from './modules/admin/admin.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { HealthModule } from './modules/health/health.module';
 import { ResourcesModule } from './modules/resources/resources.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
@@ -54,6 +55,7 @@ import { WebhookModule } from './modules/webhook/webhook.module';
     WebhookModule,
     ResourcesModule,
     AdminModule,
+    HealthModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
