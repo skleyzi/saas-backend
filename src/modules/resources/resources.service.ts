@@ -28,16 +28,18 @@ export class ResourcesService {
       throw new HttpException('Active subscription required', 402);
     }
 
-    const count = await this.prisma.resource.count({ where: { userId } });
+    return await this.prisma.$transaction(async (tx) => {
+      const count = await tx.resource.count({ where: { userId } });
 
-    if (count >= subscription.plan.maxResources) {
-      throw new ForbiddenException(
-        `Plan limit reached (${subscription.plan.maxResources} resources max)`,
-      );
-    }
+      if (count >= subscription.plan.maxResources) {
+        throw new ForbiddenException(
+          `Plan limit reached (${subscription.plan.maxResources} resources max)`,
+        );
+      }
 
-    return await this.prisma.resource.create({
-      data: { ...createResourceDto, userId },
+      return await tx.resource.create({
+        data: { ...createResourceDto, userId },
+      });
     });
   }
 
