@@ -1,4 +1,4 @@
-import { fastifyAdapterConfig } from '@common/configs/pino.config';
+import { fastifyAdapterConfig } from '@common/configs/fastify.config';
 import fastifyCookie from '@fastify/cookie';
 import { fastifyHelmet } from '@fastify/helmet';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
