@@ -58,8 +58,9 @@ import { WebhookModule } from './modules/webhook/webhook.module';
     HealthModule,
   ],
   providers: [
+    ThrottlerGuard,
     { provide: APP_GUARD, useClass: AuthGuard },
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useExisting: ThrottlerGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })
