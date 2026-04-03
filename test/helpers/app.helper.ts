@@ -7,12 +7,16 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppModule } from '../../src/app.module';
 
 export async function createApp(): Promise<NestFastifyApplication> {
   const module = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(ThrottlerGuard)
+    .useValue({ canActivate: () => true })
+    .compile();
 
   const app = module.createNestApplication<NestFastifyApplication>(
     new FastifyAdapter(fastifyAdapterConfig),
