@@ -1,0 +1,16 @@
+node_modules
+dist
+generated
+.git
+.gitignore
+.env
+.env.*
+*.local
+.vscode
+coverage
+test
+README.md
+docker-compose.yml
+.dockerignore
+**/*.spec.ts
+**/*.e2e-spec.ts
