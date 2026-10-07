@@ -5,7 +5,6 @@
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![pnpm](https://img.shields.io/badge/pnpm-Enabled-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 📋 Table of Contents
 - [SaaS Backend Template](#saas-backend-template)
@@ -26,7 +25,6 @@
   - [🏗 Project Structure](#-project-structure)
   - [🔧 Environment Variables](#-environment-variables)
   - [🔄 Development Workflow](#-development-workflow)
-  - [📄 License](#-license)
 
 ---
 
@@ -262,9 +260,3 @@ Copy `.env.example` to `.env` and fill in the values. All variables are required
 - **Commit Hooks**: Pre-commit linting (Biome) and commit-msg validation (Commitlint) via Husky.
 - **Database Changes**: Modify `prisma/schema.prisma` → `pnpm prisma migrate dev`.
 - **Formatting**: `pnpm biome check --write .`.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
